@@ -66,8 +66,10 @@
 1.数据定义
 
 ```
-Create table sc(sno char(9),cno char(4),grade smallint,primary key(sno,cno),froeign key(sno) references student(sno),foreign key(cno) references course(cno)); Create view is_student as select sno,sname,sage from student where sdept='IS';
-Drop table sc;drop view is_student;
+Create table sc(sno char(9),cno char(4),grade smallint,primary key(sno,cno),froeign key(sno) references student(sno),foreign key(cno) references course(cno));
+Create view is_student as select sno,sname,sage from student where sdept='IS';
+Drop table sc;
+Drop view is_student;
 ```
 2.数据查询
 
