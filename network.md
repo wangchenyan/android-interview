@@ -2,7 +2,7 @@
 
 ### 1. TCP/IP
 
-![](tcp_ip)
+![](https://raw.githubusercontent.com/wangchenyan/AndroidInterview/master/image/network/tcp_ip.jpg)
  
 网络层：负责相邻计算机之间的通信。
 
@@ -122,7 +122,7 @@ SYN：同步序列编号（Synchronize Sequence Numbers）。
 
 ## 5. TCP滑动窗口协议
 
-![](sliding_window)
+![](https://raw.githubusercontent.com/wangchenyan/AndroidInterview/master/image/network/sliding_window.jpg)
  
 1.首先是AB之间三次握手建立TCP连接。在报文的交互过程中，A将自己的缓冲区大小（窗口大小）3发送给B，B同理，这样双方就知道了对端的窗口大小。
 
