@@ -3,11 +3,11 @@
 
 ## 1. Activity的生命周期，启动模式有哪些？
 
-Activity 生命周期
+**Activity 生命周期**
 
-![](activity_lifecycle.jpg)
+![Activity 生命周期](https://raw.githubusercontent.com/wangchenyan/AndroidInterview/master/image/android/activity_lifecycle.jpg)
 
-Activity启动模式
+**Activity启动模式**
 
 standard：每次激活Activity时(startActivity)，都创建Activity实例，并放入任务栈；
 
@@ -38,9 +38,9 @@ onRestoreInstanceState被调用的前提是，activity A“确实”被系统销
 
 上面的消费即表示相应函数返回值为 true。 
 
-![View不处理事件流程图](touch_event_not_consume)
+![View不处理事件流程图](https://raw.githubusercontent.com/wangchenyan/AndroidInterview/master/image/android/touch_event_not_consume.jpg)
 
-![View处理事件流程图](touch_event_consume)
+![View处理事件流程图](https://raw.githubusercontent.com/wangchenyan/AndroidInterview/master/image/android/touch_event_consume.jpg)
 
 
 ## 3. Looper和Handler的关系
@@ -50,18 +50,18 @@ public class Looper {
     // 每个线程中的Looper对象其实是一个ThreadLocal，即线程本地存储(TLS)对象
     private static final ThreadLocal sThreadLocal = new ThreadLocal();
     // Looper内的消息队列
-	final MessageQueue mQueue;
+    final MessageQueue mQueue;
     // 当前线程
     Thread mThread;
     // 每个Looper对象中有它的消息队列，和它所属的线程
-	private Looper() {
-		mQueue = new MessageQueue();
-		mRun = true;
+    private Looper() {
+        mQueue = new MessageQueue();
+        mRun = true;
         mThread = Thread.currentThread();
     }
     // 我们调用该方法会在调用线程的TLS中创建Looper对象
     public static final void prepare() {
-		if (sThreadLocal.get() != null) {
+        if (sThreadLocal.get() != null) {
             // 试图在有Looper的线程中再次创建Looper将抛出异常
             throw new RuntimeException("Only one Looper may be created per thread");
         }
@@ -73,39 +73,39 @@ public class Looper {
         
         // 这两行没看懂，不过不影响理解
         Binder.clearCallingIdentity();
-		final long ident = Binder.clearCallingIdentity();
+        final long ident = Binder.clearCallingIdentity();
         // 开始循环
         while (true) {
             Message msg = queue.next(); // 取出message
-			if (msg != null) {
-				if (msg.target == null) {
+            if (msg != null) {
+                if (msg.target == null) {
                     // message没有target为结束信号，退出循环
-					return;
+                    return;
                 }
                 ……
                 // 非常重要！将真正的处理工作交给message的target，即后面要讲的handler
-				msg.target.dispatchMessage(msg);
+                msg.target.dispatchMessage(msg);
                 ……
                 // 回收message资源
-				msg.recycle();
+                msg.recycle();
             }
         }
     }
     public static Looper myLooper() {
-		return sThreadLocal.get();
+        return sThreadLocal.get();
     }
     ……
 }
 
 public class Handler {
     ……
-	public void dispatchMessage(Message msg) {
-		if (msg.callback != null) {
-			handleCallback(msg);
+    public void dispatchMessage(Message msg) {
+        if (msg.callback != null) {
+            handleCallback(msg);
         } else {
-			if (mCallback != null) {
+            if (mCallback != null) {
                 if (mCallback.handleMessage(msg)) {
-					return;
+                    return;
                 }
             }
             handleMessage(msg);
@@ -115,7 +115,7 @@ public class Handler {
 }
 ```
 
-AsyncTask和Handler对比
+**AsyncTask和Handler对比**
 
 1.AsyncTask,是android提供的轻量级的异步类,可以直接继承AsyncTask,在类中实现异步操作,并提供接口反馈当前异步执行的程度(可以通过接口实现UI进度更新),最后反馈执行的结果给UI主线程.
 
@@ -142,7 +142,7 @@ AsyncTask和Handler对比
 
 7.ApplicationThread把这个启动Activity的操作转发给ActivityThread，ActivityThread通过ClassLoader导入相应的Activity类，然后把它启动起来。
 
-Zygote的启动过程
+**Zygote的启动过程**
 
 1.系统启动时init进程会创建Zygote进程，Zygote进程负责后续Android应用程序框架层的其它进程的创建和启动工作。
 
@@ -176,7 +176,7 @@ BroadcastReceiver在特定时间内无法处理完成
 
 小概率类型 Service在特定的时间内无法处理完成
 
-如何避免ANR
+**如何避免ANR**
 
 1.UI线程尽量只做跟UI相关的工作
 
@@ -186,7 +186,7 @@ BroadcastReceiver在特定时间内无法处理完成
 
 4.BroadCastReceiver要进行复杂操作的的时候，可以在onReceive()方法中启动一个 Service来处理。
 
-画龙点睛
+**画龙点睛**
 
 通常100到200毫秒就会让人察觉程序反应慢，为了更加提升响应，可以使用下面的两种方法
 
@@ -221,7 +221,7 @@ Android中很多地方都要用到context,连基本的Activty和Service都是从
 
 在手机版QQ中，对于图片的处理方法是先加载用户发送的图片的小图，只有用户点击了才去加载大图，这样即节省了流量也能防止bitmap过大造成OOM。另外，对于离开屏幕内容的图片，也要及时的回收，不然聊天记录一多也就OOM了。对于回收的图片，我们可以采用软引用来做缓存， 这样在内存不吃紧的情况下就能提高交互性,因为在Java中软引用在内存吃紧的时候才会被垃圾回收，比较适合用做cache.另外在Android 3.1版本起，官方还提供了LruCache来进行cache处理。对于不用的Bitmap对象，我们要及时回收，否则会造成Memory leak，所以当我们确定Bitmap对象不用的时候要及时调用Bitmap.recycle()方法来使它尽早被GC。
 
-图片OOM优化
+**图片OOM优化**
 
 1.在内存引用上做些处理，常用的有软引用、弱引用
 
@@ -263,7 +263,7 @@ Android中很多地方都要用到context,连基本的Activty和Service都是从
 
 百度云推送的实现技术简单来说就是利用Socket维持Client和Server间的一个TCP长连接，通过这种方式能大大降低由轮询方式带来的Device的耗电量和数据访问流量。
 
-**移动端获取网络数据优化的几个点
+**移动端获取网络数据优化的几个点**
 
 1.连接复用:节省连接建立时间，如开启keep-alive
 
@@ -290,7 +290,7 @@ Android中很多地方都要用到context,连基本的Activty和Service都是从
 
 5.Messenger
 
-Binder机制
+**Binder机制**
 
 1.Client, Server和Service Manager实现在用户空间中，Binder驱动程序实现在内核空间中
 
@@ -323,8 +323,8 @@ SurfaceView在新的线程中更新画面，而View必须在UI线程中更新画
 在UI线程中更新画面可能会引发问题，比如你更新画面的时间过长，那么你的主UI线程会被你正在画的函数阻塞。那么将无法响应按键，触屏等消息。SurfaceView由于是在新的线程中更新画面所以不会阻塞UI线程。但这也带来了另外一个问题，就是事件同步。比如你触屏了一下，你需要SurfaceView中thread处理，一般就需要有一个event queue的设计来保存 touch event，这会稍稍复杂一点，因为涉及到线程同步。
 
 
-## 13. <include> <merge> <ViewStub>标签
+## 13. `<include>` `<merge>` `<ViewStub>`标签
 
-简言之:<include> <merge>都是用来解决重复布局的问题，但是merge标签能够在布局重用的时候减少UI层级结构。
+简言之:`<include>` `<merge>`都是用来解决重复布局的问题，但是merge标签能够在布局重用的时候减少UI层级结构。
 
 ViewStub标签是用来给其他的view事先占据好位置，当需要的时候调用inflater()或者是 setVisible()方法显示这些View。
