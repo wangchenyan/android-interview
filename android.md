@@ -186,14 +186,6 @@ BroadcastReceiver在特定时间内无法处理完成
 
 4.BroadCastReceiver要进行复杂操作的的时候，可以在onReceive()方法中启动一个 Service来处理。
 
-**画龙点睛**
-
-通常100到200毫秒就会让人察觉程序反应慢，为了更加提升响应，可以使用下面的两种方法
-
-1.如果程序正在后台处理用户的输入，建议使用让用户得知进度，比如使用ProgressBar控件。
-
-2.程序启动时可以选择加上欢迎界面，避免让用户察觉卡顿。
-
 
 ## 7. OOM问题
 
@@ -232,6 +224,47 @@ Android中很多地方都要用到context,连基本的Activty和Service都是从
 4.优化Dalvik虚拟机的堆内存分配
 
 5.自定义堆内存大小
+
+**Bitmap分配在native heap还是dalvik heap上？**
+
+BitmapFactory.java里面有几个decode***方法用来创建bitmap，最终都会调用：
+
+```
+private staticnative Bitmap nativeDecodeStream(InputStream is, byte[] storage,Rect padding,Options opts);
+```
+
+而nativeDecodeStream()会调用到BitmapFactory.cpp中的deDecode方法，最终会调用到Graphics.cpp的createBitmap方法。
+
+我们来看看createBitmap方法的实现：
+
+```
+jobjectGraphicsJNI::createBitmap(JNIEnv* env, SkBitmap* bitmap, jbyteArray buffer,
+                                  boolisMutable, jbyteArray ninepatch, int density)
+{
+    SkASSERT(bitmap);
+    SkASSERT(bitmap->pixelRef());
+
+    jobject obj = env->NewObject(gBitmap_class, gBitmap_constructorMethodID,
+           static_cast<jint>(reinterpret_cast<uintptr_t>(bitmap)),
+            buffer, isMutable, ninepatch,density);
+    hasException(env); // For the side effectof logging.
+    return obj;
+}
+```
+
+从代码中可以看到bitmap对象是通过env->NewOject( )创建的，到这里疑惑就解开了，bitmap对象是虚拟机创建的，JNIEnv的NewOject方法返回的是java对象，并不是native对象，所以它会分配到dalvik heap中。
+
+**发生OOM的原因**
+
+1.文件描述符(fd)数目超限，即proc/pid/fd下文件数目突破/proc/pid/limits中的限制。可能的发生场景有：
+
+短时间内大量请求导致socket的fd数激增，大量（重复）打开文件等
+
+2.线程数超限，即proc/pid/status中记录的线程数（threads项）突破/proc/sys/kernel/threads-max中规定的最大线程数。可能的发生场景有：
+
+app内多线程使用不合理，如多个不共享线程池的OKhttpclient等等
+
+3.传统的java堆内存超限，即申请堆内存大小超过了 Runtime.getRuntime().maxMemory()
 
 
 ## 8. ListView优化
