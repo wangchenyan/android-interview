@@ -153,6 +153,8 @@ public class Handler {
 
 ## 5. View绘制流程
 
+![](https://raw.githubusercontent.com/wangchenyan/AndroidInterview/master/image/android/view_draw_process.jpg)
+
 View的绘制主要涉及三个方法:onMeasure()、onLayout()和onDraw()。
 
 1.onMeasure主要用于计算view的大小，onLayout主要用于确定view在ContentView中的位置，onDraw主要是绘制view;
