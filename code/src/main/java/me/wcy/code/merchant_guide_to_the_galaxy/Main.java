@@ -37,6 +37,10 @@ public class Main {
                     for (int i = 0; i < array2.length - 1; i++) {
                         romes[i] = romeMap.get(array2[i].trim());
                     }
+                    if (!valid(romes)) {
+                        System.out.println("invalid combination");
+                        return;
+                    }
                     String product = array2[array2.length - 1];
                     String priceStr = array[1].trim();
                     double totalPrice = Integer.parseInt(priceStr.substring(0, priceStr.indexOf(" ")));
@@ -50,6 +54,10 @@ public class Main {
                     for (int i = 0; i < array.length; i++) {
                         romes[i] = romeMap.get(array[i].trim());
                     }
+                    if (!valid(romes)) {
+                        System.out.println("invalid combination");
+                        return;
+                    }
                     int count = compute(romes);
                     System.out.println(countStr + " is " + count);
                 } else if (line.startsWith("how many Credits is ") && line.endsWith(" ?")) { // ask total price
@@ -59,8 +67,9 @@ public class Main {
                         throw new IllegalArgumentException();
                     }
                     Rome[] romes = new Rome[array.length - 1];
-                    for (int i = 0; i < array.length - 1; i++) {
-                        romes[i] = romeMap.get(array[i].trim());
+                    if (!valid(romes)) {
+                        System.out.println("invalid combination");
+                        return;
                     }
                     int count = compute(romes);
                     double price = priceMap.get(array[array.length - 1].trim());
