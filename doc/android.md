@@ -376,7 +376,7 @@ https://blog.csdn.net/itachi85/article/details/64123035
 
 https://www.zhihu.com/question/34652589
 
-## 16. Android View draw 方法流程
+## 16. Android View draw 流程
 
 View中：
 
