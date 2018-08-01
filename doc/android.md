@@ -365,9 +365,7 @@ SurfaceView在新的线程中更新画面，而View必须在UI线程中更新画
 ViewStub标签是用来给其他的view事先占据好位置，当需要的时候调用inflater()或者是 setVisible()方法显示这些View。
 
 
-## 14. Android应用程序进程启动过程
-
-https://blog.csdn.net/itachi85/article/details/64123035
+## 14. [Android应用程序进程启动过程](https://blog.csdn.net/itachi85/article/details/64123035)
 
 
 ## 15. Android中为什么主线程不会因为Looper.loop()里的死循环卡死？
