@@ -363,3 +363,54 @@ SurfaceView在新的线程中更新画面，而View必须在UI线程中更新画
 简言之:`<include>` `<merge>`都是用来解决重复布局的问题，但是merge标签能够在布局重用的时候减少UI层级结构。
 
 ViewStub标签是用来给其他的view事先占据好位置，当需要的时候调用inflater()或者是 setVisible()方法显示这些View。
+
+
+## 14. Android应用程序进程启动过程
+
+https://blog.csdn.net/itachi85/article/details/64123035
+
+
+## 15. Android中为什么主线程不会因为Looper.loop()里的死循环卡死？
+
+主线程Looper从消息队列读取消息，当读完所有消息时，主线程阻塞。子线程往消息队列发送消息，并且往管道文件写数据，主线程即被唤醒，从管道文件读取数据，主线程被唤醒只是为了读取消息，当消息读取完毕，再次睡眠。
+
+https://www.zhihu.com/question/34652589
+
+## 16. Android View draw 方法流程
+
+View中：
+
+```
+public void draw(Canvas canvas) {
+/*
+1. Draw the background   绘制背景
+2. If necessary, save the canvas' layers to prepare for fading  如有必要，颜色渐变淡之前保存画布层(即锁定原有的画布内容)
+3. Draw view's content  绘制view的内容
+4. Draw children    绘制子view
+5. If necessary, draw the fading edges and restore layers   如有必要，绘制颜色渐变淡的边框，并恢复画布(即画布改变的内容附加到原有内容上)
+6. Draw decorations (scrollbars for instance)   绘制装饰，比如滚动条
+*/
+   ...
+   if (!dirtyOpaque) {
+       drawBackground(canvas); //背景绘制
+   }
+   // skip step 2 & 5 if possible (common case) 通常情况跳过第2和第5步
+   ...
+   if (!dirtyOpaque) onDraw(canvas); //调用onDraw
+   dispatchDraw(canvas);   //绘制子view
+   onDrawScrollBars(canvas); //绘制滚动条
+   ...
+}
+```
+
+ViewGroup中：
+
+```
+protected void dispatchDraw(Canvas canvas) {
+    ...
+    drawChild(...); //绘制子view
+    ...
+}
+```
+
+自定义ViewGroup，onDraw可能不会被调用，原因是需要先设置一个背景(颜色或图)，因此，一般重写dispatchDraw来绘制ViewGroup。
