@@ -414,3 +414,6 @@ protected void dispatchDraw(Canvas canvas) {
 ```
 
 自定义ViewGroup，onDraw可能不会被调用，原因是需要先设置一个背景(颜色或图)，因此，一般重写dispatchDraw来绘制ViewGroup。
+
+
+## 17. [Android ListView 与 RecyclerView 对比浅析--缓存机制](https://mp.weixin.qq.com/s?__biz=MzA3NTYzODYzMg==&mid=2653578065&idx=2&sn=25e64a8bb7b5934cf0ce2e49549a80d6)
