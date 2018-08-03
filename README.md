@@ -1,4 +1,4 @@
-# AndroidInterview
+# android-interview
 
 Android面试要点
 
