@@ -3,7 +3,7 @@
 * 本科/西南科技大学/软件工程
 * 工作年限：2年
 * 手机：13136109681
-* Email：919247701@qq.com
+* Email：wangchenyan2015@gmail.com
 * 技术博客：http://www.jianshu.com/u/3231579893ac
 * Github：https://github.com/wangchenyan
 * 期望职位：Android 高级开发工程师
