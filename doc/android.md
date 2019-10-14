@@ -415,3 +415,11 @@ protected void dispatchDraw(Canvas canvas) {
 
 
 ## 17. [Android ListView 与 RecyclerView 对比浅析--缓存机制](https://mp.weixin.qq.com/s?__biz=MzA3NTYzODYzMg==&mid=2653578065&idx=2&sn=25e64a8bb7b5934cf0ce2e49549a80d6)
+
+## 18. LeakCanary的核心原理
+1. 通过registerActivityLifecycleCallbacks()监听各个Activity的退出
+2. Activity退出后，拿到Activity的对象封装成KeyedWeakReference弱引用对象。
+3. 通过手动Runtime.getRuntime().gc();垃圾回收
+4. 通过removeWeaklyReachableReferences()手动移除已经被回收的对象
+5. 通过gone()函数判断是否被移除，如果移除了，说明Activity 已经没有其他强引用 在引用它，没有泄露
+6. 如果没有移除，通过android原生接口Debug.dumpHprofData()，把Hprof文件搞下来，通过haha这个第三方库去解析是否有指定Activity的残留。（haha是分析Hprof的java库）
