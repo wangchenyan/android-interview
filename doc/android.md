@@ -425,8 +425,8 @@ protected void dispatchDraw(Canvas canvas) {
 6. 如果没有移除，通过android原生接口Debug.dumpHprofData()，把Hprof文件搞下来，通过haha这个第三方库去解析是否有指定Activity的残留。（haha是分析Hprof的java库）
 
 ## 19. Serializable 和 Parcelable 的区别
-1. Parcelable的效率要快于Serializable(这是最主要的区别)。
-  a.Serializable底层实现需要用到反射，而且也会产生大量的对象(这可能会触发GC)；再者就是Serializable是在IO操作。
-  b.Parcelable底层实现则不需要反射，而且它是内存操作。
+1. Parcelable的效率要快于Serializable(这是最主要的区别)。<br>
+  a.Serializable底层实现需要用到反射，而且也会产生大量的对象(这可能会触发GC)；再者就是Serializable是在IO操作。<br>
+  b.Parcelable底层实现则不需要反射，而且它是内存操作。<br>
 2. Parcelable的使用要复杂于Serializable。
 3. IPC的时候用Parcelable，是因为它效率高。网络传输和保存至磁盘的时候用Serializable，是因为Parcelable不能保证，当外部条件发生变化时数据的连续性。
