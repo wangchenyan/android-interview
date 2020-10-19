@@ -5,7 +5,7 @@
 
 **Activity 生命周期**
 
-![Activity 生命周期](https://raw.githubusercontent.com/wangchenyan/AndroidInterview/master/image/android/activity_lifecycle.jpg)
+![Activity 生命周期](https://raw.githubusercontent.com/wangchenyan/android-interview/master/module/android/image/activity_lifecycle.jpg)
 
 **Activity启动模式**
 
@@ -38,9 +38,9 @@ onRestoreInstanceState被调用的前提是，activity A“确实”被系统销
 
 上面的消费即表示相应函数返回值为 true。 
 
-![View不处理事件流程图](https://raw.githubusercontent.com/wangchenyan/AndroidInterview/master/image/android/touch_event_not_consume.jpg)
+![View不处理事件流程图](https://raw.githubusercontent.com/wangchenyan/android-interview/master/module/android/image/touch_event_not_consume.jpg)
 
-![View处理事件流程图](https://raw.githubusercontent.com/wangchenyan/AndroidInterview/master/image/android/touch_event_consume.jpg)
+![View处理事件流程图](https://raw.githubusercontent.com/wangchenyan/android-interview/master/module/android/image/touch_event_consume.jpg)
 
 
 ## 3. Looper和Handler的关系
@@ -153,7 +153,7 @@ public class Handler {
 
 ## 5. View绘制流程
 
-![](https://raw.githubusercontent.com/wangchenyan/AndroidInterview/master/image/android/view_draw_process.jpg)
+![](https://raw.githubusercontent.com/wangchenyan/android-interview/master/module/android/image/view_draw_process.jpg)
 
 View的绘制主要涉及三个方法:onMeasure()、onLayout()和onDraw()。
 
