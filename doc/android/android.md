@@ -77,16 +77,20 @@ ActivityManagerService.startActivity接口的进程，对于通过点击应用�
 
 **Binder机制**
 
-1.Client, Server和Service Manager实现在用户空间中，Binder驱动程序实现在内核空间中
+[Binder 学习总结](https://www.jianshu.com/p/62a07a5c76e5)
 
-2.Binder驱动程序和Service Manager在Android平台中已经实现，开发者只需要在用户空间实现自己的Client和Server
+**Binder 优势**
+1.传输性能好
 
-3.Binder驱动程序提供设备文件/dev/binder与用户空间交互，Client, Server和ServiceManager通过 open和ioctl文件操作函数与Binder驱动程序进行通信
+socket：是一个通用接口，导致其传输效率低，开销大，主要用在跨网络的进程间通信和本机上进程间的低速通信
 
-4.Client和Server之间的进程间通信通过Binder驱动程序间接实现
+管道和消息队列：因为采用存储转发方式，所以至少需要拷贝2次数据，效率低；
 
-5.Service Manager是一个守护进程，用来管理Server，并向Client提供查询Server接口的能力
+共享内存：虽然在传输时没有拷贝数据，但其控制机制复杂。
 
+2.安全性高
+
+Android为每个安装好的应用程序分配了自己的 UID，进程的 UID 是鉴别进程身份的重要标志。可靠的身份标记只有由 IPC 机制本身在内核中添加。
 
 ## 4. ANR问题
 
@@ -329,17 +333,7 @@ Thread(子线程)运行并生成Message,Looper获取 Message并传递给Handler,
 5.根据用户的当前的网络质量来判断下载什么质量的图片(电商用的比较多)
 
 
-## 8. LeakCanary的核心原理
-1. 通过registerActivityLifecycleCallbacks()监听各个Activity的退出
-2. Activity退出后，拿到Activity的对象封装成KeyedWeakReference弱引用对象。
-3. 通过手动Runtime.getRuntime().gc()垃圾回收
-4. 通过removeWeaklyReachableReferences()手动移除已经被回收的对象
-5. 通过gone()函数判断是否被移除，如果移除了，说明Activity 已经没有其他强引用在引用它，没有泄露
-6. 如果没有移除，通过android原生接口Debug.dumpHprofData()，把Hprof文件搞下来，通过haha这个第三方库去解析是否有指定Activity的残留。
-（haha是分析Hprof的java库）
-
-
-## 9. Serializable 和 Parcelable 的区别
+## 8. Serializable 和 Parcelable 的区别
 1. Parcelable的效率要快于Serializable(这是最主要的区别)。
 
 a.Serializable底层实现需要用到反射，而且也会产生大量的对象(这可能会触发GC)；再者就是Serializable是在IO操作。
@@ -351,7 +345,7 @@ b.Parcelable底层实现则不需要反射，而且它是内存操作。
 3. IPC的时候用Parcelable，是因为它效率高。网络传输和保存至磁盘的时候用Serializable，是因为Parcelable不能保证当外部条件发生变化时数据的连续性。
 
 
-## 10. View绘制流程
+## 9. View绘制流程
 
 ![](https://raw.githubusercontent.com/wangchenyan/android-interview/master/doc/android/image/view_draw_process.jpg)
 
@@ -417,7 +411,7 @@ SurfaceView由于是在新的线程中更新画面所以不会阻塞UI线程。�
 ViewStub标签是用来给其他的view事先占据好位置，当需要的时候调用inflater()或者是 setVisible()方法显示这些View。
 
 
-## 11. Touch事件传递机制
+## 10. Touch事件传递机制
 
 1.事件从Activity.dispatchTouchEvent()开始传递，只要没有被停止或拦截，从最上层的 View(ViewGroup)开始一直往下(子View)传递。
 子 View 可以通过 onTouchEvent()对事件进行处理。
@@ -438,10 +432,10 @@ ViewStub标签是用来给其他的view事先占据好位置，当需要的时�
 ![View处理事件流程图](https://raw.githubusercontent.com/wangchenyan/android-interview/master/doc/android/image/touch_event_consume.jpg)
 
 
-## 12. [Android ListView 与 RecyclerView 对比浅析--缓存机制](https://mp.weixin.qq.com/s/-CzDkEur-iIX0lPMsIS0aA)
+## 11. [Android ListView 与 RecyclerView 对比浅析--缓存机制](https://mp.weixin.qq.com/s/-CzDkEur-iIX0lPMsIS0aA)
 
 
-## 13. Scroller原理
+## 12. Scroller原理
 
 Scroller执行流程里面的三个核心方法 mScroller.startScroll() mScroller.computeScrollOffset() view.computeScroll()
 
@@ -455,7 +449,7 @@ Scroller执行流程里面的三个核心方法 mScroller.startScroll() mScrolle
 当前时刻应该所处的位置并将其保存在变量mCurrX和 mCurrY中。除此之外该方法还可判断动画是否已经结束。
 
 
-## 14. Android 动画原理
+## 13. Android 动画原理
 **补间动画**
 在每一次VSYN到来时，在View的draw方法里面，根据当前时间计算动画进度，计算出一个需要变换的Transformation矩阵，
 然后最终设置到canvas上去，调用canvas concat做矩阵变换。
@@ -466,3 +460,19 @@ Scroller执行流程里面的三个核心方法 mScroller.startScroll() mScrolle
 
 **属性动画**
 [属性动画 ValueAnimator 运行原理全解析](https://mp.weixin.qq.com/s/SZXJQNXar0SjApbl4rXicA)
+
+
+## 14. 开源库
+**LeakCanary的核心原理**
+1. 通过registerActivityLifecycleCallbacks()监听各个Activity的退出
+2. Activity退出后，拿到Activity的对象封装成KeyedWeakReference弱引用对象。
+3. 通过手动Runtime.getRuntime().gc()垃圾回收
+4. 通过removeWeaklyReachableReferences()手动移除已经被回收的对象
+5. 通过gone()函数判断是否被移除，如果移除了，说明Activity 已经没有其他强引用在引用它，没有泄露
+6. 如果没有移除，通过android原生接口Debug.dumpHprofData()，把Hprof文件搞下来，通过haha这个第三方库去解析是否有指定Activity的残留。
+（haha是分析Hprof的java库）
+
+[EventBus源码详解](https://juejin.im/post/6881265680465788936)
+
+**Glide**
+[Android glide使用过程中遇到的坑(进阶篇)](https://www.jianshu.com/p/deccde405e04)
