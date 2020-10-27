@@ -24,7 +24,10 @@
 
 (3)拥有资源：进程是拥有资源的一个独立单位，线程不拥有系统资源，但可以访问隶属于进程的资源.
 
-(4)系统开销：在创建或撤消进程时，由于系统都要为之分配和回收资源，导致系统的开销明显大于创建或撤消线程时的开销。但是进程有独立的地址空间，一个进程崩溃后，在保护模式下不会对其它进程产生影响，而线程只是一个进程中的不同执行路径。线程有自己的堆栈和局部变量，但线程之间没有单独的地址空间，一个进程死掉就等于所有的线程死掉，所以多进程的程序要比多线程的程序健壮，但在进程切换时，耗费资源较大，效率要差一些
+(4)系统开销：在创建或撤消进程时，由于系统都要为之分配和回收资源，导致系统的开销明显大于创建或撤消线程时的开销。
+但是进程有独立的地址空间，一个进程崩溃后，在保护模式下不会对其它进程产生影响，而线程只是一个进程中的不同执行路径。
+线程有自己的堆栈和局部变量，但线程之间没有单独的地址空间，一个进程死掉就等于所有的线程死掉，
+所以多进程的程序要比多线程的程序健壮，但在进程切换时，耗费资源较大，效率要差一些
 
 结论：
 
@@ -66,7 +69,8 @@
 1.数据定义
 
 ```
-Create table sc(sno char(9),cno char(4),grade smallint,primary key(sno,cno),froeign key(sno) references student(sno),foreign key(cno) references course(cno));
+Create table sc(sno char(9),cno char(4),grade smallint,primary key(sno,cno),
+froeign key(sno) references student(sno),foreign key(cno) references course(cno));
 Create view is_student as select sno,sname,sage from student where sdept='IS';
 Drop table sc;
 Drop view is_student;
@@ -91,7 +95,8 @@ COUNT SUM AVG MAX MIN
 
 2.4WHERE与HAVING的区别
 
-WHERE字句与HAVING短语的区别在于作用对象不同，WHERE字句作用于基本表或视图，从中选择满足条件的元组。HAVING短语作用于组，从中选择满足条件的组。
+WHERE字句与HAVING短语的区别在于作用对象不同，WHERE字句作用于基本表或视图，从中选择满足条件的元组。
+HAVING短语作用于组，从中选择满足条件的组。
 
 ```
 Select sno from sc group by sno having count(*)>3;
@@ -104,7 +109,8 @@ Select sno from sc group by sno having count(*)>3;
 查询选修了全部课程的学生姓名（没有一门课是他不选的）
 
 ```
-Select sname from student where not exists(select * from course where not exists(select * from sc where sno=student.sno and cno=course.cno));
+Select sname from student where not exists(select * from course where not exists
+(select * from sc where sno=student.sno and cno=course.cno));
 ```
 
 2.6limit的使用
@@ -126,6 +132,7 @@ Delete from student where sno='200215128';
 4.触发器
 
 ```
-Create trigger t_student after insert on student for each row insert into course values(new.sno,new.sname);
+Create trigger t_student after insert on student for each row insert into course 
+values(new.sno,new.sname);
 Drop trigger t_student;
 ```
