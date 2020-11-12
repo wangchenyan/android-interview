@@ -259,7 +259,7 @@ public class Handler {
 此时主线程会释放CPU资源进入休眠状态，直到下个消息到达或者有事务发生，通过往pipe管道写端写入数据来唤醒主线程工作。
 这里采用的epoll机制，是一种IO多路复用机制，可以同时监控多个描述符，当某个描述符就绪(读或写就绪)，则立刻通知相应程序进行读或写操作，本质同步I/O，即读写是阻塞的。
 
-https://www.zhihu.com/question/34652589/answer/90344494
+[Android中为什么主线程不会因为Looper.loop()里的死循环卡死？](https://www.zhihu.com/question/34652589/answer/90344494)
 
 **AsyncTask和Handler对比**
 
@@ -304,7 +304,7 @@ Thread(子线程)运行并生成Message,Looper获取 Message并传递给Handler,
 3. IPC的时候用Parcelable，是因为它效率高。网络传输和保存至磁盘的时候用Serializable，是因为Parcelable不能保证当外部条件发生变化时数据的连续性。
 
 
-## 9. View绘制流程
+## 9. View
 ![](https://raw.githubusercontent.com/wangchenyan/android-interview/master/doc/android/image/view_draw_process.jpg)
 
 View的绘制主要涉及三个方法: onMeasure()、onLayout()和onDraw()。
@@ -368,7 +368,7 @@ SurfaceView由于是在新的线程中更新画面所以不会阻塞UI线程。�
 ViewStub标签是用来给其他的view事先占据好位置，当需要的时候调用inflater()或者是 setVisible()方法显示这些View。
 
 
-## 10. Touch事件传递机制
+## 10. Touch 事件机制
 1. 事件从Activity.dispatchTouchEvent()开始传递，只要没有被停止或拦截，从最上层的 View(ViewGroup)开始一直往下(子View)传递。
 子 View 可以通过 onTouchEvent()对事件进行处理。
 2. 事件由父 View(ViewGroup)传递给子View，ViewGroup 可以通过 onInterceptTouchEvent()对事件做拦截，停止其往下传递。
@@ -384,10 +384,11 @@ ViewStub标签是用来给其他的view事先占据好位置，当需要的时�
 ![View处理事件流程图](https://raw.githubusercontent.com/wangchenyan/android-interview/master/doc/android/image/touch_event_consume.jpg)
 
 
-## 11. [Android ListView 与 RecyclerView 对比浅析--缓存机制](https://mp.weixin.qq.com/s/-CzDkEur-iIX0lPMsIS0aA)
+## 11. RecyclerView
+[Android ListView 与 RecyclerView 对比浅析--缓存机制](https://mp.weixin.qq.com/s/-CzDkEur-iIX0lPMsIS0aA)
 
 
-## 12. Scroller原理
+## 12. Scroller
 Scroller执行流程里面的三个核心方法 mScroller.startScroll() mScroller.computeScrollOffset() view.computeScroll()
 1. 在mScroller.startScroll()中为滑动做了一些初始化准备。<br>
 比如:起始坐标，滑动的距离和方向以及持续时间(有默认值)，动画开始时间等
@@ -435,7 +436,7 @@ Js 中执行 window.prompt 调用 Native 方法。
 ## 14. 换肤方案
 AssetManager 可以加载 apk 文件中的资源，LayoutInflater.Factory 可以 hook View 创建，两者配合可以做到动态换肤。
 
-https://juejin.im/post/6844903670270656525
+[Android 常用换肤方式以及原理分析](https://juejin.im/post/6844903670270656525)
  
 ```
 String apkPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/test.apk";
@@ -518,7 +519,7 @@ if (ClassVerifier.PREVENT_VERIFY) {
 
 协程是轻量级的线程，它基于线程池API。相比较 RxJava，协程可以使用阻塞的方式写出非阻塞式的代码，解决并发中常见的回调地狱，这是其最大的优点。
 
-https://juejin.im/post/6854573211418361864
+[即学即用Kotlin - 协程](https://juejin.im/post/6854573211418361864)
 
 
 ## 17. Android Jetpack
