@@ -104,22 +104,19 @@ ANR一般有三种类型：
 
 ## 5. OOM问题
 
-1.应用中需要加载大对象，例如Bitmap
-
+1. 应用中需要加载大对象，例如Bitmap
 解决方案：当我们需要显示大的bitmap对象或者较多的bitmap的时候，就需要进行压缩来防止OOM问题。
 我们可以通过设置BitmapFactory.Options的inJustDecodeBounds属性为true，这样的话不会加载图片到内存中，
 但是会将图片的width和height属性读取出来，我们可以利用这个属性来对bitmap进行压缩。Options.inSampleSize 可以设置压缩比。
 
-2.持有无用的对象使其无法被gc，导致Memory Leak。
-
-2.1静态变量导致的Memory leak
+2. 持有无用的对象使其无法被gc，导致Memory Leak。
+2.1 静态变量导致的Memory leak
 
 静态变量的生命周期和类是息息相关的，它们分配在方法区上，垃圾回收一般不会回收这一块的内存。
 所以我们在代码中用到静态对象，在不用的时候如果不赋null值，消除对象的引用的话，那么这些对象是很难被垃圾回收的，
 如果这些对象一多或者比较大的话，程序出现OOM的概率就比较大了。因为静态变量而出现内存泄漏是很常见的。
 
-2.2不合理使用Context 导致的Memory leak
-
+2.2 不合理使用Context 导致的Memory leak
 Android中很多地方都要用到context,连基本的Activity和Service都是从Context派生出来的，
 我们利用Context主要用来加载资源或者初始化组件，在Activity中有些地方需要用到Context的时候，
 我们经常会把context给传递过去了，将context传递出去就有可能延长了context的生命周期，最终导致了内存泄漏。
@@ -127,14 +124,12 @@ Android中很多地方都要用到context,连基本的Activity和Service都是�
 选择context应该考虑到它的生命周期，如果使用该context的组件的生命周期超过该context对象，
 那么我们就要考虑是否可以用Application context。如果真的需要用到该context对象，可以考虑用弱引用WeakReference来避免内存泄漏。
 
-2.3非静态内部类导致的Memory leak
-
+2.3 非静态内部类导致的Memory leak
 非静态的内部类会持有外部类的一个引用，所以和前面context说到的一样，如果该内部类生命周期超过外部类的生命周期，
 就可能引起内存泄露了，如AsyncTask和Handler。因为在Activity中我们可能会用到匿名内部类，所以要小心管理其生命周期。
 如果明确生命周期较外部类长的话，那么应该使用静态内部类。
 
 2.4 Drawable对象的回调隐含的Memory leak
-
 当我们为某一个view设置背景的时候，view会在drawable对象上注册一个回调，所以drawable对象就拥有了该view的引用了，
 进而对整个context都有了间接的引用了，如果该drawable对象没有管理好，例如设置为静态，那么就会导致Memory leak。
 
@@ -301,8 +296,8 @@ Thread(子线程)运行并生成Message,Looper获取 Message并传递给Handler,
 
 ## 8. Serializable 和 Parcelable 的区别
 1. Parcelable的效率要快于Serializable(这是最主要的区别)。
-  a. Serializable底层实现需要用到反射，而且也会产生大量的对象(这可能会触发GC)；再者就是Serializable是在IO操作。
-  b. Parcelable底层实现则不需要反射，而且它是内存操作。
+  - Serializable底层实现需要用到反射，而且也会产生大量的对象(这可能会触发GC)；再者就是Serializable是在IO操作。
+  - Parcelable底层实现则不需要反射，而且它是内存操作。
 2. Parcelable的使用要复杂于Serializable。
 3. IPC的时候用Parcelable，是因为它效率高。网络传输和保存至磁盘的时候用Serializable，是因为Parcelable不能保证当外部条件发生变化时数据的连续性。
 
