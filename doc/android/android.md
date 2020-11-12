@@ -95,11 +95,9 @@ ANR一般有三种类型：
 1. 导出 trace 文件，adb pull data/anr/traces.txt
 2. 分析 trace
 
-如果CPU使用量接近100%，说明当前设备很忙，有可能是CPU饥饿导致了ANR；
-
-如果CPU使用量很少，说明主线程被BLOCK了；
-
-如果IOWait很高，说明ANR有可能是主线程在进行I/O操作造成的。
+- 如果CPU使用量接近100%，说明当前设备很忙，有可能是CPU饥饿导致了ANR；
+- 如果CPU使用量很少，说明主线程被BLOCK了；
+- 如果IOWait很高，说明ANR有可能是主线程在进行I/O操作造成的。
 
 
 ## 5. OOM问题
@@ -110,6 +108,7 @@ ANR一般有三种类型：
 但是会将图片的width和height属性读取出来，我们可以利用这个属性来对bitmap进行压缩。Options.inSampleSize 可以设置压缩比。
 
 2. 持有无用的对象使其无法被gc，导致Memory Leak。
+
 2.1 静态变量导致的Memory leak
 
 静态变量的生命周期和类是息息相关的，它们分配在方法区上，垃圾回收一般不会回收这一块的内存。
@@ -117,6 +116,7 @@ ANR一般有三种类型：
 如果这些对象一多或者比较大的话，程序出现OOM的概率就比较大了。因为静态变量而出现内存泄漏是很常见的。
 
 2.2 不合理使用Context 导致的Memory leak
+
 Android中很多地方都要用到context,连基本的Activity和Service都是从Context派生出来的，
 我们利用Context主要用来加载资源或者初始化组件，在Activity中有些地方需要用到Context的时候，
 我们经常会把context给传递过去了，将context传递出去就有可能延长了context的生命周期，最终导致了内存泄漏。
@@ -125,11 +125,13 @@ Android中很多地方都要用到context,连基本的Activity和Service都是�
 那么我们就要考虑是否可以用Application context。如果真的需要用到该context对象，可以考虑用弱引用WeakReference来避免内存泄漏。
 
 2.3 非静态内部类导致的Memory leak
+
 非静态的内部类会持有外部类的一个引用，所以和前面context说到的一样，如果该内部类生命周期超过外部类的生命周期，
 就可能引起内存泄露了，如AsyncTask和Handler。因为在Activity中我们可能会用到匿名内部类，所以要小心管理其生命周期。
 如果明确生命周期较外部类长的话，那么应该使用静态内部类。
 
 2.4 Drawable对象的回调隐含的Memory leak
+
 当我们为某一个view设置背景的时候，view会在drawable对象上注册一个回调，所以drawable对象就拥有了该view的引用了，
 进而对整个context都有了间接的引用了，如果该drawable对象没有管理好，例如设置为静态，那么就会导致Memory leak。
 
