@@ -8,18 +8,17 @@
 ![Activity 生命周期](https://raw.githubusercontent.com/wangchenyan/android-interview/master/doc/android/image/activity_lifecycle.jpg)
 
 **Fragment 生命周期**
+
 1. replace，加回退栈，Fragment不销毁，视图销毁，回退后重新创建视图。
 2. replace，不加回退栈，Fragment销毁。
 3. hide、show，Fragment不销毁，也不销毁视图，隐藏和显示不走生命周期。
 
 **Activity启动模式**
-standard：每次激活Activity时(startActivity)，都创建Activity实例，并放入任务栈；
 
-singleTop：如果某个Activity自己激活自己，即任务栈栈顶就是该Activity，则不需要创建，其余情况都要创建Activity实例；
-
-singleTask：如果要激活的那个Activity在任务栈中存在该实例，则不需要创建，只需要把此Activity放入栈顶，即把该Activity以上的Activity实例都pop，并调用其onNewIntent；
-
-singleInstance：应用A的任务栈中创建了MainActivity实例，如果应用B也要激活 MainActivity，则不需要创建，两应用共享该Activity实例。
+- standard：每次激活Activity时(startActivity)，都创建Activity实例，并放入任务栈；
+- singleTop：如果某个Activity自己激活自己，即任务栈栈顶就是该Activity，则不需要创建，其余情况都要创建Activity实例；
+- singleTask：如果要激活的那个Activity在任务栈中存在该实例，则不需要创建，只需要把此Activity放入栈顶，即把该Activity以上的Activity实例都pop，并调用其onNewIntent；
+- singleInstance：应用A的任务栈中创建了MainActivity实例，如果应用B也要激活 MainActivity，则不需要创建，两应用共享该Activity实例。
 
 onSaveInstanceState的调用遵循一个重要原则，即当系统“未经你许可”时销毁了你的 activity，则onSaveInstanceState会被系统调用，
 这是系统的责任，因为它必须要提供一个机会让你保存你的数据。至于onRestoreInstanceState方法，需要注意的是，
@@ -48,6 +47,7 @@ ActivityManagerService.startActivity接口的进程，对于通过点击应用�
 7. ApplicationThread把这个启动Activity的操作转发给ActivityThread，ActivityThread通过ClassLoader导入相应的Activity类，然后把它启动起来。
 
 **Zygote的启动过程**
+
 1. 系统启动时init进程会创建Zygote进程，Zygote进程负责后续Android应用程序框架层的其它进程的创建和启动工作。
 2. Zygote进程会首先创建一个SystemServer进程，SystemServer进程负责启动系统的关键服务，
 如包管理服务PackageManagerService和应用程序组件管理服务ActivityManagerService。
@@ -64,19 +64,17 @@ ActivityManagerService.startActivity接口的进程，对于通过点击应用�
 5. Messenger
 
 **Binder机制**
+
 [Binder 学习总结](https://www.jianshu.com/p/62a07a5c76e5)
 
 **Binder 优势**
+
 1. 传输性能好
-
-socket：是一个通用接口，导致其传输效率低，开销大，主要用在跨网络的进程间通信和本机上进程间的低速通信
-
-管道和消息队列：因为采用存储转发方式，所以至少需要拷贝2次数据，效率低；
-
-共享内存：虽然在传输时没有拷贝数据，但其控制机制复杂。
+- socket：是一个通用接口，导致其传输效率低，开销大，主要用在跨网络的进程间通信和本机上进程间的低速通信
+- 管道和消息队列：因为采用存储转发方式，所以至少需要拷贝2次数据，效率低；
+- 共享内存：虽然在传输时没有拷贝数据，但其控制机制复杂。
 
 2. 安全性高
-
 Android为每个安装好的应用程序分配了自己的 UID，进程的 UID 是鉴别进程身份的重要标志。可靠的身份标记只有由 IPC 机制本身在内核中添加。
 
 ## 4. ANR问题
@@ -86,12 +84,14 @@ ANR一般有三种类型：
 3. ServiceTimeout(20 seconds): 小概率类型 Service在特定的时间内无法处理完成
 
 **如何避免ANR**
+
 1. UI线程尽量只做跟UI相关的工作
 2. 耗时的工作（比如数据库操作，I/O，连接网络或者别的有可能阻碍UI线程的操作）把它放入单独的线程处理
 3. 尽量用Handler来处理UIThread和WorkThread之间的交互
 4. BroadCastReceiver要进行复杂操作的的时候，可以在onReceive()方法中启动一个 Service来处理。
 
 **AND 问题排查**
+
 1. 导出 trace 文件，adb pull data/anr/traces.txt
 2. 分析 trace
 
@@ -108,7 +108,6 @@ ANR一般有三种类型：
 但是会将图片的width和height属性读取出来，我们可以利用这个属性来对bitmap进行压缩。Options.inSampleSize 可以设置压缩比。
 
 2. 持有无用的对象使其无法被gc，导致Memory Leak。
-
 2.1 静态变量导致的Memory leak
 
 静态变量的生命周期和类是息息相关的，它们分配在方法区上，垃圾回收一般不会回收这一块的内存。
@@ -136,6 +135,7 @@ Android中很多地方都要用到context,连基本的Activity和Service都是�
 进而对整个context都有了间接的引用了，如果该drawable对象没有管理好，例如设置为静态，那么就会导致Memory leak。
 
 **发生OOM的原因**
+
 1. 文件描述符(fd)数目超限，即proc/pid/fd下文件数目突破/proc/pid/limits中的限制。可能的发生场景有：
 短时间内大量请求导致socket的fd数激增，大量（重复）打开文件等
 2. 线程数超限，即proc/pid/status中记录的线程数（threads项）突破/proc/sys/kernel/threads-max中规定的最大线程数。可能的发生场景有：
@@ -143,6 +143,7 @@ app内多线程使用不合理，如多个不共享线程池的OkHttpClient等�
 3. 传统的java堆内存超限，即申请堆内存大小超过了 Runtime.getRuntime().maxMemory()
 
 **图片OOM优化**
+
 1. 在内存引用上做些处理，常用的有软引用、弱引用
 2. 在内存中加载图片时直接在内存中做处理，如:边界压缩
 3. 动态回收内存
@@ -253,6 +254,7 @@ public class Handler {
 ```
 
 **Android中为什么主线程不会因为Looper.loop()里的死循环卡死？**
+
 在主线程的MessageQueue没有消息时，便阻塞在loop的queue.next()中的nativePollOnce()方法里，
 此时主线程会释放CPU资源进入休眠状态，直到下个消息到达或者有事务发生，通过往pipe管道写端写入数据来唤醒主线程工作。
 这里采用的epoll机制，是一种IO多路复用机制，可以同时监控多个描述符，当某个描述符就绪(读或写就绪)，则立刻通知相应程序进行读或写操作，本质同步I/O，即读写是阻塞的。
@@ -260,19 +262,16 @@ public class Handler {
 https://www.zhihu.com/question/34652589/answer/90344494
 
 **AsyncTask和Handler对比**
+
 1. AsyncTask是android提供的轻量级的异步类,可以直接继承AsyncTask,在类中实现异步操作,
 并提供接口反馈当前异步执行的程度(可以通过接口实现UI进度更新),最后反馈执行的结果给UI主线程.
-
-优点:1.简单,快捷 2.过程可控
-
-缺点:在使用多个异步操作和并进行UI变更时,就变得复杂起来.
+- 优点:1.简单,快捷 2.过程可控
+- 缺点:在使用多个异步操作和并进行UI变更时,就变得复杂起来.
 
 2. Handler在异步实现时,涉及到Handler,Looper,Message,Thread四个对象，实现异步的流程是主线程启动Thread(子线程),
 Thread(子线程)运行并生成Message,Looper获取 Message并传递给Handler,Handler逐个获取Looper中的Message,并进行UI变更。
-
-优点：1.结构清晰，功能定义明确 2.对于多个后台任务时，简单，清晰
-
-缺点：在单个后台异步处理时，显得代码过多，结构过于复杂（相对性）
+- 优点：1.结构清晰，功能定义明确 2.对于多个后台任务时，简单，清晰
+- 缺点：在单个后台异步处理时，显得代码过多，结构过于复杂（相对性）
 
 
 ## 7. Android消息推送机制
@@ -287,6 +286,7 @@ Thread(子线程)运行并生成Message,Looper获取 Message并传递给Handler,
 百度云推送的实现技术简单来说就是利用Socket维持Client和Server间的一个TCP长连接，通过这种方式能大大降低由轮询方式带来的Device的耗电量和数据访问流量。
 
 **移动端获取网络数据优化的几个点**
+
 1. 连接复用: 节省连接建立时间，如开启keep-alive <br>
 对于Android来说默认情况下HttpURLConnection和HttpClient都开启了keep-alive。只是2.2之前HttpURLConnection存在影响连接池的Bug
 2. 请求合并: 即将多个请求合并为一个进行请求，比较常见的就是网页中的CSSImage Sprites。如果某个页面内请求过多，也可以考虑做一定的请求合并
@@ -298,8 +298,8 @@ Thread(子线程)运行并生成Message,Looper获取 Message并传递给Handler,
 
 ## 8. Serializable 和 Parcelable 的区别
 1. Parcelable的效率要快于Serializable(这是最主要的区别)。
-  - Serializable底层实现需要用到反射，而且也会产生大量的对象(这可能会触发GC)；再者就是Serializable是在IO操作。
-  - Parcelable底层实现则不需要反射，而且它是内存操作。
+- Serializable底层实现需要用到反射，而且也会产生大量的对象(这可能会触发GC)；再者就是Serializable是在IO操作。
+- Parcelable底层实现则不需要反射，而且它是内存操作。
 2. Parcelable的使用要复杂于Serializable。
 3. IPC的时候用Parcelable，是因为它效率高。网络传输和保存至磁盘的时候用Serializable，是因为Parcelable不能保证当外部条件发生变化时数据的连续性。
 
@@ -398,6 +398,7 @@ Scroller执行流程里面的三个核心方法 mScroller.startScroll() mScrolle
 
 ## 13. Android 动画原理
 **补间动画**
+
 在每一次VSYNC到来时，在View的draw方法里面，根据当前时间计算动画进度，计算出一个需要变换的Transformation矩阵，
 然后最终设置到canvas上去，调用canvas concat做矩阵变换。
 
@@ -406,19 +407,23 @@ Scroller执行流程里面的三个核心方法 mScroller.startScroll() mScrolle
 [Android动画Animation运行原理解析](https://mp.weixin.qq.com/s/uqFErwA5gBGrzW5GoKbnBA)
 
 **属性动画**
+
 [属性动画 ValueAnimator 运行原理全解析](https://mp.weixin.qq.com/s/SZXJQNXar0SjApbl4rXicA)
 
 
 ## 14. WebView
 **Native 与 Js通信**
+
 复写 WebView 的 WebChromeClient 类的 onJsPrompt 方法，按照一定的协议，传递方法和参数，通过 WebView.loadUrl 回调执行结果。
 Js 中执行 window.prompt 调用 Native 方法。
 
 **loadUrl 与 evaluateJavascript 的区别**
+
 1. 该方法的执行不会使页面刷新，而方法 loadUrl 的执行则会使页面刷新
 2. evaluateJavascript Android 4.4 后才可使用
 
 **WebView 秒开方案**
+
 1. WebView 内核提前初始化
 2. 资源预置，通过拦截 WebView 资源请求，直接返回本地资源
 3. 数据预取，启动 WebView 的同时开始下载资源，WebView 可以直接使用已下载的资源
@@ -470,6 +475,7 @@ LayoutInflater.from(this).setFactory(new LayoutInflater.Factory() {
 
 ## 15.热修复原理
 **1.QQ空间**
+
 把补丁类生成 patch.dex，在app启动时，使用反射获取当前应用的ClassLoader，也就是 BaseDexClassLoader，
 反射获取其中的pathList，类型为DexPathList， 反射获取其中的Element[] dexElements, 记为elements1;
 然后使用当前应用的ClassLoader作为父ClassLoader，构造出 patch.dex 的 DexClassLoader,
@@ -491,6 +497,7 @@ if (ClassVerifier.PREVENT_VERIFY) {
 复制代码这样在 odex 过程中，每个类都会出现 AntilazyLoad 在另一个dex文件中的问题，所以odex的验证过程也就不会继续下去，这样做牺牲了dvm对dex的优化效果了。
 
 **2.Tinker**
+
 修复前和修复后的apk分别定义为apk1和apk2，tinker自研了一套dex文件差分合并算法，在生成补丁包时，生成一个差分包 patch.dex，
 后端下发patch.dex到客户端时，tinker会开一个线程把旧apk的class.dex和patch.dex合并，生成新的class.dex并存放在本地目录上，
 重新启动时，会使用本地新生成的class.dex对应的elements替换原有的elements数组。
@@ -499,6 +506,7 @@ if (ClassVerifier.PREVENT_VERIFY) {
 这样在通过 getResources 去获取资源的时候就可以获取到我们外部的资源了。
 
 **3.Robust**
+
 1.打基础包时插桩，在每个方法前插入一段类型为 ChangeQuickRedirect 静态变量的逻辑；
 
 2.加载补丁时，从补丁包中读取要替换的类及具体替换的方法实现，新建 ClassLoader 加载补丁dex。
@@ -507,6 +515,7 @@ if (ClassVerifier.PREVENT_VERIFY) {
 
 ## 16. Kotlin
 **协程**
+
 协程是轻量级的线程，它基于线程池API。相比较 RxJava，协程可以使用阻塞的方式写出非阻塞式的代码，解决并发中常见的回调地狱，这是其最大的优点。
 
 https://juejin.im/post/6854573211418361864
@@ -514,6 +523,7 @@ https://juejin.im/post/6854573211418361864
 
 ## 17. Android Jetpack
 **Lifecycle**
+
 1. Activity中调用LifecycleRegistry的addObserver，传入一个LifecycleObserver
 2. 传入的LifecycleObserver被封装成一个ObserverWithState存入集合中，当生命周期发生改变的时候，
 就会遍历这个ObserverWithState集合，并且调用ObserverWithState的dispatchEvent进行分发
@@ -524,6 +534,7 @@ https://juejin.im/post/6854573211418361864
 [Android 官方架构组件（一）——Lifecycle](https://juejin.im/post/6844903748448288781)
 
 **ViewModel**
+
 ViewModel以及存储在其中的数据是怎样在屏幕旋转下依然保留在内存中的？
 
 GC垃圾回收机制不会回收被强引用的对象。在开发过程中，我们需要存储的数据被ViewModel引用，ViewModel被ViewModelStore引用，
@@ -536,6 +547,7 @@ GC垃圾回收机制不会回收被强引用的对象。在开发过程中，我
 
 ## 18. 开源库
 **LeakCanary的核心原理**
+
 1. 通过 registerActivityLifecycleCallbacks() 监听各个 Activity 的 onDestroy 方法
 2. Activity 退出后，拿到 Activity 的对象封装成 WeakReference 弱引用对象，
 配合 ReferenceQueue，如果对象被回收，JVM 就会把弱引用存入与之关联的引用队列之中
@@ -546,9 +558,11 @@ GC垃圾回收机制不会回收被强引用的对象。在开发过程中，我
 [EventBus源码详解](https://juejin.im/post/6881265680465788936)
 
 **Glide**
+
 [Android glide使用过程中遇到的坑(进阶篇)](https://www.jianshu.com/p/deccde405e04)
 
 **AndResGuard**
+
 1. 生成新的资源文件目录，里面对资源文件路径进行混淆(其中涉及如何复用旧的mapping文件)，例如将res/drawable/hello.png混淆为r/s/a.png，并将映射关系输出到mapping文件中。
 2. 对资源id进行混淆(其中涉及如何复用旧的mapping文件)，并将映射关系输出到mapping文件中。
 3. 生成新的resources.arsc文件，里面对资源项值字符串池、资源项key字符串池进行混淆替换，对资源项entry中引用的资源项字符串池位置进行修正、并更改相应大小，并打包生成新的apk。
