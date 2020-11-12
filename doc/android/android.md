@@ -403,7 +403,7 @@ Scroller执行流程里面的三个核心方法 mScroller.startScroll() mScrolle
 在每一次VSYNC到来时，在View的draw方法里面，根据当前时间计算动画进度，计算出一个需要变换的Transformation矩阵，
 然后最终设置到canvas上去，调用canvas concat做矩阵变换。
 
-![](https://raw.githubusercontent.com/wangchenyan/android-interview/master/doc/android/image/tween_animation.jpg)
+![](https://raw.githubusercontent.com/wangchenyan/android-interview/master/doc/android/image/tween_animation.png)
 
 [Android动画Animation运行原理解析](https://mp.weixin.qq.com/s/uqFErwA5gBGrzW5GoKbnBA)
 
@@ -508,9 +508,8 @@ if (ClassVerifier.PREVENT_VERIFY) {
 
 **3.Robust**
 
-1.打基础包时插桩，在每个方法前插入一段类型为 ChangeQuickRedirect 静态变量的逻辑；
-
-2.加载补丁时，从补丁包中读取要替换的类及具体替换的方法实现，新建 ClassLoader 加载补丁dex。
+1. 打基础包时插桩，在每个方法前插入一段类型为 ChangeQuickRedirect 静态变量的逻辑；
+2. 加载补丁时，从补丁包中读取要替换的类及具体替换的方法实现，新建 ClassLoader 加载补丁dex。
 找到补丁对应的 class，通过反射将 ChangeQuickRedirect 静态变量赋值为补丁中的实现，从而代理方法的实现。
 
 
