@@ -75,7 +75,13 @@ ActivityManagerService.startActivity接口的进程，对于通过点击应用�
 - 共享内存：虽然在传输时没有拷贝数据，但其控制机制复杂。
 
 2. 安全性高
-Android为每个安装好的应用程序分配了自己的 UID，进程的 UID 是鉴别进程身份的重要标志。可靠的身份标记只有由 IPC 机制本身在内核中添加。
+- Android为每个安装好的应用程序分配了自己的 UID，进程的 UID 是鉴别进程身份的重要标志。可靠的身份标记只有由 IPC 机制本身在内核中添加。
+
+**AIDL中的in out inout**
+- in 表现为服务端将会接收到一个那个对象的完整数据，但是客户端的那个对象不会因为服务端对传参的修改而发生变动
+- out 表现为服务端将会接收到那个对象的参数为空的对象，但是在服务端对接收到的空对象有任何修改之后客户端将会同步变动
+- inout 表现为服务端将会接收到客户端传来对象的完整信息，并且客户端将会同步服务端对该对象的任何变动
+
 
 ## 4. ANR问题
 ANR一般有三种类型：
@@ -253,6 +259,8 @@ public class Handler {
 }
 ```
 
+[Handler的初级、中级、高级问法，你都掌握了吗？](https://juejin.im/post/6893791473121280013)
+
 **Android中为什么主线程不会因为Looper.loop()里的死循环卡死？**
 
 在主线程的MessageQueue没有消息时，便阻塞在loop的queue.next()中的nativePollOnce()方法里，
@@ -260,6 +268,12 @@ public class Handler {
 这里采用的epoll机制，是一种IO多路复用机制，可以同时监控多个描述符，当某个描述符就绪(读或写就绪)，则立刻通知相应程序进行读或写操作，本质同步I/O，即读写是阻塞的。
 
 [Android中为什么主线程不会因为Looper.loop()里的死循环卡死？](https://www.zhihu.com/question/34652589/answer/90344494)
+
+**同步屏障**
+1. 屏障消息和普通消息的区别在于屏障没有target，普通消息有target是因为它需要将消息分发给对应的target，而屏障不需要被分发，它就是用来挡住普通消息来保证异步消息优先处理的
+2. 屏障和普通消息一样可以根据时间来插入到消息队列中的适当位置，并且只会挡住它后面的同步消息的分发
+3. postSyncBarrier()返回一个int类型的数值，通过这个数值可以撤销屏障即removeSyncBarrier()
+4. 插入普通消息会唤醒消息队列，但是插入屏障不会
 
 **AsyncTask和Handler对比**
 
@@ -385,6 +399,8 @@ ViewStub标签是用来给其他的view事先占据好位置，当需要的时�
 
 
 ## 11. RecyclerView
+
+[RecyclerView缓存机制](https://www.wanandroid.com/wenda/show/14222)
 [Android ListView 与 RecyclerView 对比浅析--缓存机制](https://mp.weixin.qq.com/s/-CzDkEur-iIX0lPMsIS0aA)
 
 
@@ -513,7 +529,22 @@ if (ClassVerifier.PREVENT_VERIFY) {
 找到补丁对应的 class，通过反射将 ChangeQuickRedirect 静态变量赋值为补丁中的实现，从而代理方法的实现。
 
 
-## 16. Kotlin
+## 16. 插件化方案
+**VirtualApk**
+1. Activity：在宿主apk中提前占几个坑，然后通过“欺上瞒下”（这个词好像是360之前的ppt中提到）的方式，启动插件apk的Activity；
+因为要支持不同的launchMode以及一些特殊的属性，需要占多个坑。
+2. Service：通过代理Service的方式去分发；主进程和其他进程，VirtualAPK使用了两个代理Service。
+3. BroadcastReceiver：静态转动态。
+4. ContentProvider：通过一个代理Provider进行分发。
+
+**资源id冲突如何解决**
+1. 修改aapt源码，定制aapt工具，编译期间修改PP段。(PP字段是资源id的第一个字节，表示包空间)<br>
+DynamicAPK的做法就是如此，定制aapt，替换google的原始aapt，在编译的时候可以传入参数修改PP段：例如传入0x05编译得到的资源的PP段就是0x05。
+2. 修改aapt的产物，即编译后期重新整理插件Apk的资源，编排ID。<br>
+VirtualApk采用的就是这个方案。
+
+
+## 17. Kotlin
 **协程**
 
 协程是轻量级的线程，它基于线程池API。相比较 RxJava，协程可以使用阻塞的方式写出非阻塞式的代码，解决并发中常见的回调地狱，这是其最大的优点。
@@ -521,7 +552,7 @@ if (ClassVerifier.PREVENT_VERIFY) {
 [即学即用Kotlin - 协程](https://juejin.im/post/6854573211418361864)
 
 
-## 17. Android Jetpack
+## 18. Android Jetpack
 **Lifecycle**
 
 1. Activity中调用LifecycleRegistry的addObserver，传入一个LifecycleObserver
@@ -539,13 +570,12 @@ ViewModel以及存储在其中的数据是怎样在屏幕旋转下依然保留�
 
 GC垃圾回收机制不会回收被强引用的对象。在开发过程中，我们需要存储的数据被ViewModel引用，ViewModel被ViewModelStore引用，
 而ViewModelStore又被HolderFragment引用，于是就形成了一条引用链：HolderFragment->ViewModelStore->ViewModel->我们想要存储的数据（最佳实践是LiveData）。
-通过上面HolderFragment的分析，我们知道HolderFragment在创建时，设置了setRetainInstance(true)，
-因此它使得自身能够不受到屏幕旋转等configuration changes影响而存活，直到依附的Activity正常结束。
+HolderFragment在创建时，设置了setRetainInstance(true)，因此它使得自身能够不受到屏幕旋转等configuration changes影响而存活，直到依附的Activity正常结束。
 
 [Android 官方架构组件（三）——ViewModel](https://juejin.im/post/6844903748767072264)
 
 
-## 18. 开源库
+## 19. 开源库
 **LeakCanary的核心原理**
 
 1. 通过 registerActivityLifecycleCallbacks() 监听各个 Activity 的 onDestroy 方法
