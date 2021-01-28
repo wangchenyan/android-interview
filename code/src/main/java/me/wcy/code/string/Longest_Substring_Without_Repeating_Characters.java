@@ -19,21 +19,23 @@ public class Longest_Substring_Without_Repeating_Characters {
 
     public int lengthOfLongestSubstring(String s) {
         int max = Integer.MIN_VALUE;
-        int fast = 0;
-        int slow = 0;
+        int subStart = 0;
         Set<Character> set = new HashSet<>();
-        while (fast < s.length()) {
-            if (!set.contains(s.charAt(fast))) {
-                set.add(s.charAt(fast));
-            } else {
+        for (int i = 0; i < s.length(); i++) {
+            // 当前字符
+            char c = s.charAt(i);
+            if (set.contains(c)) {
                 max = Math.max(max, set.size());
-                while (s.charAt(slow) != s.charAt(fast)) {
-                    set.remove(s.charAt(slow));
-                    slow++;
+                // 移除相同字符前面的字符
+                while (s.charAt(subStart) != c) {
+                    set.remove(s.charAt(subStart));
+                    subStart++;
                 }
-                slow++;
+                // 移除相同字符
+                set.remove(s.charAt(subStart));
+                subStart++;
             }
-            fast++;
+            set.add(c);
         }
 
         max = Math.max(max, set.size());

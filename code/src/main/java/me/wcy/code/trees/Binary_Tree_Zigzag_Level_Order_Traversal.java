@@ -1,9 +1,7 @@
 package me.wcy.code.trees;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Queue;
 import java.util.Stack;
 
 /**
@@ -20,20 +18,20 @@ class Binary_Tree_Zigzag_Level_Order_Traversal {
         while (!stack.isEmpty()) {
             int size = stack.size();
             List<Integer> list = new ArrayList<>(size);
-            Queue<TreeNode> queue = new ArrayDeque<>(size);
+            List<TreeNode> cacheList = new ArrayList<>(size);
             while (size > 0) {
                 TreeNode node = stack.pop();
                 list.add(node.val);
                 if (reverse) {
-                    if (node.right != null) queue.add(node.right);
-                    if (node.left != null) queue.add(node.left);
+                    if (node.right != null) cacheList.add(node.right);
+                    if (node.left != null) cacheList.add(node.left);
                 } else {
-                    if (node.left != null) queue.add(node.left);
-                    if (node.right != null) queue.add(node.right);
+                    if (node.left != null) cacheList.add(node.left);
+                    if (node.right != null) cacheList.add(node.right);
                 }
                 size--;
             }
-            stack.addAll(queue);
+            stack.addAll(cacheList);
             reverse = !reverse;
             result.add(list);
         }

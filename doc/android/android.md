@@ -269,11 +269,17 @@ public class Handler {
 
 [Android中为什么主线程不会因为Looper.loop()里的死循环卡死？](https://www.zhihu.com/question/34652589/answer/90344494)
 
+**Handler异步消息**
+1. `public Handler(boolean async)`
+2. `Message.setAsynchronous(boolean async)`
+
 **同步屏障**
 1. 屏障消息和普通消息的区别在于屏障没有target，普通消息有target是因为它需要将消息分发给对应的target，而屏障不需要被分发，它就是用来挡住普通消息来保证异步消息优先处理的
 2. 屏障和普通消息一样可以根据时间来插入到消息队列中的适当位置，并且只会挡住它后面的同步消息的分发
 3. postSyncBarrier()返回一个int类型的数值，通过这个数值可以撤销屏障即removeSyncBarrier()
 4. 插入普通消息会唤醒消息队列，但是插入屏障不会
+
+[Android Handler之同步屏障机制](https://www.jianshu.com/p/ed318296f95f)
 
 **AsyncTask和Handler对比**
 
@@ -436,7 +442,7 @@ Js 中执行 window.prompt 调用 Native 方法。
 
 **loadUrl 与 evaluateJavascript 的区别**
 
-1. 该方法的执行不会使页面刷新，而方法 loadUrl 的执行则会使页面刷新
+1. evaluateJavascript 的执行不会使页面刷新，而方法 loadUrl 的执行则会使页面刷新
 2. evaluateJavascript Android 4.4 后才可使用
 
 **WebView 秒开方案**
@@ -450,7 +456,7 @@ Js 中执行 window.prompt 调用 Native 方法。
 
 
 ## 14. 换肤方案
-AssetManager 可以加载 apk 文件中的资源，LayoutInflater.Factory 可以 hook View 创建，两者配合可以做到动态换肤。
+通过 AssetManager 加载 apk 文件中的资源，通过 LayoutInflater.Factory hook View 创建，两者配合可以做到动态换肤。
 
 [Android 常用换肤方式以及原理分析](https://juejin.im/post/6844903670270656525)
  
@@ -478,15 +484,15 @@ imageView.setImageDrawable(resources.getDrawable(id));
 
 ```
 LayoutInflater.from(this).setFactory(new LayoutInflater.Factory() {
-        @Override
-        public View onCreateView(String name, Context context, AttributeSet attrs) {
-            Log.e("MainActivity", "name :" + name);
-            int count = attrs.getAttributeCount();
-            for (int i = 0; i < count; i++) {
-                Log.e("MainActivity", "AttributeName :" + attrs.getAttributeName(i) + "AttributeValue :"+ attrs.getAttributeValue(i));
-            }
-            return null;
+    @Override
+    public View onCreateView(String name, Context context, AttributeSet attrs) {
+        Log.e("MainActivity", "name :" + name);
+        int count = attrs.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            Log.e("MainActivity", "AttributeName :" + attrs.getAttributeName(i) + "AttributeValue :"+ attrs.getAttributeValue(i));
         }
+        return null;
+    }
 });
 ```
 
@@ -494,24 +500,24 @@ LayoutInflater.from(this).setFactory(new LayoutInflater.Factory() {
 **1.QQ空间**
 
 把补丁类生成 patch.dex，在app启动时，使用反射获取当前应用的ClassLoader，也就是 BaseDexClassLoader，
-反射获取其中的pathList，类型为DexPathList， 反射获取其中的Element[] dexElements, 记为elements1;
+反射获取其中的pathList，类型为DexPathList，反射获取其中的 Element[] dexElements, 记为elements1;
 然后使用当前应用的ClassLoader作为父ClassLoader，构造出 patch.dex 的 DexClassLoader,
-通用通过反射可以获取到对应的Element[] dexElements，记为elements2。将elements2拼在elements1前面，然后再去调用加载类的方法loadClass。
+通用通过反射可以获取到对应的 Element[] dexElements，记为elements2。将elements2拼在elements1前面，然后再去调用加载类的方法loadClass。
 
 隐藏的技术难点 CLASS_ISPREVERIFIED 问题
 apk在安装时会进行dex文件进行验证和优化操作。这个操作能让app运行时直接加载odex文件，能够减少对内存占用，
 加快启动速度，如果没有odex操作，需要从apk包中提取dex再运行。
 在验证过程，如果某个类的调用关系都在同一个dex文件中，那么这个类会被打上CLASS_ISPREVERIFIED标记，表示这个类已经预先验证过了。
 但是再使用的过程中会反过来校验下，如果这个类被打上了CLASS_ISPREVERIFIED但是存在调用关系的类不在同一个dex文件中的话，会直接抛出异常。
-为了解决这个问题，QQ空间给出的解决方案就是，准备一个 AntilazyLoad 类，这个类会单独打包成一个 hack.dex，然后在所有的类的构造方法中增加这样的代码：
+为了解决这个问题，QQ空间给出的解决方案就是，准备一个 Hack 类，这个类会单独打包成一个 hack.dex，然后在所有的类的构造方法中增加这样的代码：
 
 ```
 if (ClassVerifier.PREVENT_VERIFY) {
-   System.out.println(AntilazyLoad.class);
+   System.out.println(Hack.class);
 }
 ```
 
-复制代码这样在 odex 过程中，每个类都会出现 AntilazyLoad 在另一个dex文件中的问题，所以odex的验证过程也就不会继续下去，这样做牺牲了dvm对dex的优化效果了。
+这样在 odex 过程中，每个类都会出现 Hack 在另一个dex文件中的问题，所以odex的验证过程也就不会继续下去，这样做牺牲了dvm对dex的优化效果了。
 
 **2.Tinker**
 
@@ -528,10 +534,48 @@ if (ClassVerifier.PREVENT_VERIFY) {
 2. 加载补丁时，从补丁包中读取要替换的类及具体替换的方法实现，新建 ClassLoader 加载补丁dex。
 找到补丁对应的 class，通过反射将 ChangeQuickRedirect 静态变量赋值为补丁中的实现，从而代理方法的实现。
 
+```
+// 插桩后的源码 State
+public static ChangeQuickRedirect changeQuickRedirect;
+public long getIndex() {
+    if(changeQuickRedirect != null) {
+        //PatchProxy中封装了获取当前className和methodName的逻辑，并在其内部最终调用了changeQuickRedirect的对应函数
+        if(PatchProxy.isSupport(new Object[0], this, changeQuickRedirect, false)) {
+            return ((Long)PatchProxy.accessDispatch(new Object[0], this, changeQuickRedirect, false)).longValue();
+        }
+    }
+    return 100L;
+}
+```
+
+```
+// 补丁类 StatePatch
+public class StatePatch implements ChangeQuickRedirect {
+    @Override
+    public Object accessDispatch(String methodSignature, Object[] paramArrayOfObject) {
+        String[] signature = methodSignature.split(":");
+        // 混淆后的 getIndex 方法 对应 a
+        if (TextUtils.equals(signature[1], "a")) {//long getIndex() -> a
+            return 106;
+        }
+        return null;
+    }
+
+    @Override
+    public boolean isSupport(String methodSignature, Object[] paramArrayOfObject) {
+        String[] signature = methodSignature.split(":");
+        if (TextUtils.equals(signature[1], "a")) {//long getIndex() -> a
+            return true;
+        }
+        return false;
+    }
+}
+```
+
 
 ## 16. 插件化方案
 **VirtualApk**
-1. Activity：在宿主apk中提前占几个坑，然后通过“欺上瞒下”（这个词好像是360之前的ppt中提到）的方式，启动插件apk的Activity；
+1. Activity：在宿主apk中提前占几个坑，然后通过“欺上瞒下”的方式，启动插件apk的Activity；
 因为要支持不同的launchMode以及一些特殊的属性，需要占多个坑。
 2. Service：通过代理Service的方式去分发；主进程和其他进程，VirtualAPK使用了两个代理Service。
 3. BroadcastReceiver：静态转动态。
@@ -554,7 +598,6 @@ VirtualApk采用的就是这个方案。
 
 ## 18. Android Jetpack
 **Lifecycle**
-
 1. Activity中调用LifecycleRegistry的addObserver，传入一个LifecycleObserver
 2. 传入的LifecycleObserver被封装成一个ObserverWithState存入集合中，当生命周期发生改变的时候，
 就会遍历这个ObserverWithState集合，并且调用ObserverWithState的dispatchEvent进行分发
@@ -565,14 +608,8 @@ VirtualApk采用的就是这个方案。
 [Android 官方架构组件（一）——Lifecycle](https://juejin.im/post/6844903748448288781)
 
 **ViewModel**
-
-ViewModel以及存储在其中的数据是怎样在屏幕旋转下依然保留在内存中的？
-
-GC垃圾回收机制不会回收被强引用的对象。在开发过程中，我们需要存储的数据被ViewModel引用，ViewModel被ViewModelStore引用，
-而ViewModelStore又被HolderFragment引用，于是就形成了一条引用链：HolderFragment->ViewModelStore->ViewModel->我们想要存储的数据（最佳实践是LiveData）。
-HolderFragment在创建时，设置了setRetainInstance(true)，因此它使得自身能够不受到屏幕旋转等configuration changes影响而存活，直到依附的Activity正常结束。
-
-[Android 官方架构组件（三）——ViewModel](https://juejin.im/post/6844903748767072264)
+1. ViewModel 存储在 Activity 的 NonConfigurationInstances 对象中，该对象用来保存 Activity 重建的数据。
+2. 不持有 UI 引用，不会造成内存泄漏。
 
 
 ## 19. 开源库
