@@ -3,18 +3,16 @@
 
 ## 1. Activity的生命周期，启动模式有哪些？
 
-**Activity 生命周期**
+### Activity 生命周期
 
 ![Activity 生命周期](https://raw.githubusercontent.com/wangchenyan/android-interview/master/doc/android/image/activity_lifecycle.jpg)
 
-**Fragment 生命周期**
-
+### Fragment 生命周期
 1. replace，加回退栈，Fragment不销毁，视图销毁，回退后重新创建视图。
 2. replace，不加回退栈，Fragment销毁。
 3. hide、show，Fragment不销毁，也不销毁视图，隐藏和显示不走生命周期。
 
-**Activity启动模式**
-
+### Activity启动模式
 - standard：每次激活Activity时(startActivity)，都创建Activity实例，并放入任务栈；
 - singleTop：如果某个Activity自己激活自己，即任务栈栈顶就是该Activity，则不需要创建，其余情况都要创建Activity实例；
 - singleTask：如果要激活的那个Activity在任务栈中存在该实例，则不需要创建，只需要把此Activity放入栈顶，即把该Activity以上的Activity实例都pop，并调用其onNewIntent；
@@ -46,8 +44,7 @@ ActivityManagerService.startActivity接口的进程，对于通过点击应用�
 6. ActivityManagerService调用ApplicationThread.scheduleLaunchActivity接口，通知相应的进程执行启动Activity的操作；
 7. ApplicationThread把这个启动Activity的操作转发给ActivityThread，ActivityThread通过ClassLoader导入相应的Activity类，然后把它启动起来。
 
-**Zygote的启动过程**
-
+### Zygote的启动过程
 1. 系统启动时init进程会创建Zygote进程，Zygote进程负责后续Android应用程序框架层的其它进程的创建和启动工作。
 2. Zygote进程会首先创建一个SystemServer进程，SystemServer进程负责启动系统的关键服务，
 如包管理服务PackageManagerService和应用程序组件管理服务ActivityManagerService。
@@ -63,12 +60,11 @@ ActivityManagerService.startActivity接口的进程，对于通过点击应用�
 4. AIDL服务
 5. Messenger
 
-**Binder机制**
+### Binder机制
 
 [Binder 学习总结](https://www.jianshu.com/p/62a07a5c76e5)
 
-**Binder 优势**
-
+### Binder 优势
 1. 传输性能好
 - socket：是一个通用接口，导致其传输效率低，开销大，主要用在跨网络的进程间通信和本机上进程间的低速通信
 - 管道和消息队列：因为采用存储转发方式，所以至少需要拷贝2次数据，效率低；
@@ -77,7 +73,7 @@ ActivityManagerService.startActivity接口的进程，对于通过点击应用�
 2. 安全性高
 - Android为每个安装好的应用程序分配了自己的 UID，进程的 UID 是鉴别进程身份的重要标志。可靠的身份标记只有由 IPC 机制本身在内核中添加。
 
-**AIDL中的in out inout**
+### AIDL中的in out inout
 - in 表现为服务端将会接收到一个那个对象的完整数据，但是客户端的那个对象不会因为服务端对传参的修改而发生变动
 - out 表现为服务端将会接收到那个对象的参数为空的对象，但是在服务端对接收到的空对象有任何修改之后客户端将会同步变动
 - inout 表现为服务端将会接收到客户端传来对象的完整信息，并且客户端将会同步服务端对该对象的任何变动
@@ -89,14 +85,13 @@ ANR一般有三种类型：
 2. BroadcastTimeout(10 seconds): BroadcastReceiver在特定时间内无法处理完成
 3. ServiceTimeout(20 seconds): 小概率类型 Service在特定的时间内无法处理完成
 
-**如何避免ANR**
-
+### 如何避免ANR
 1. UI线程尽量只做跟UI相关的工作
 2. 耗时的工作（比如数据库操作，I/O，连接网络或者别的有可能阻碍UI线程的操作）把它放入单独的线程处理
 3. 尽量用Handler来处理UIThread和WorkThread之间的交互
 4. BroadCastReceiver要进行复杂操作的的时候，可以在onReceive()方法中启动一个 Service来处理。
 
-**AND 问题排查**
+### AND 问题排查
 
 1. 导出 trace 文件，adb pull data/anr/traces.txt
 2. 分析 trace
@@ -107,20 +102,20 @@ ANR一般有三种类型：
 
 
 ## 5. OOM问题
-
 1. 应用中需要加载大对象，例如Bitmap
 解决方案：当我们需要显示大的bitmap对象或者较多的bitmap的时候，就需要进行压缩来防止OOM问题。
 我们可以通过设置BitmapFactory.Options的inJustDecodeBounds属性为true，这样的话不会加载图片到内存中，
 但是会将图片的width和height属性读取出来，我们可以利用这个属性来对bitmap进行压缩。Options.inSampleSize 可以设置压缩比。
 
-2. 持有无用的对象使其无法被gc，导致Memory Leak。
-2.1 静态变量导致的Memory leak
+持有无用的对象使其无法被gc，导致Memory Leak。
+
+2. 静态变量导致的Memory leak
 
 静态变量的生命周期和类是息息相关的，它们分配在方法区上，垃圾回收一般不会回收这一块的内存。
 所以我们在代码中用到静态对象，在不用的时候如果不赋null值，消除对象的引用的话，那么这些对象是很难被垃圾回收的，
 如果这些对象一多或者比较大的话，程序出现OOM的概率就比较大了。因为静态变量而出现内存泄漏是很常见的。
 
-2.2 不合理使用Context 导致的Memory leak
+3. 不合理使用Context 导致的Memory leak
 
 Android中很多地方都要用到context,连基本的Activity和Service都是从Context派生出来的，
 我们利用Context主要用来加载资源或者初始化组件，在Activity中有些地方需要用到Context的时候，
@@ -129,35 +124,32 @@ Android中很多地方都要用到context,连基本的Activity和Service都是�
 选择context应该考虑到它的生命周期，如果使用该context的组件的生命周期超过该context对象，
 那么我们就要考虑是否可以用Application context。如果真的需要用到该context对象，可以考虑用弱引用WeakReference来避免内存泄漏。
 
-2.3 非静态内部类导致的Memory leak
+4. 非静态内部类导致的Memory leak
 
 非静态的内部类会持有外部类的一个引用，所以和前面context说到的一样，如果该内部类生命周期超过外部类的生命周期，
 就可能引起内存泄露了，如AsyncTask和Handler。因为在Activity中我们可能会用到匿名内部类，所以要小心管理其生命周期。
 如果明确生命周期较外部类长的话，那么应该使用静态内部类。
 
-2.4 Drawable对象的回调隐含的Memory leak
+5. Drawable对象的回调隐含的Memory leak
 
 当我们为某一个view设置背景的时候，view会在drawable对象上注册一个回调，所以drawable对象就拥有了该view的引用了，
 进而对整个context都有了间接的引用了，如果该drawable对象没有管理好，例如设置为静态，那么就会导致Memory leak。
 
-**发生OOM的原因**
-
+### 发生OOM的原因
 1. 文件描述符(fd)数目超限，即proc/pid/fd下文件数目突破/proc/pid/limits中的限制。可能的发生场景有：
 短时间内大量请求导致socket的fd数激增，大量（重复）打开文件等
 2. 线程数超限，即proc/pid/status中记录的线程数（threads项）突破/proc/sys/kernel/threads-max中规定的最大线程数。可能的发生场景有：
 app内多线程使用不合理，如多个不共享线程池的OkHttpClient等等
 3. 传统的java堆内存超限，即申请堆内存大小超过了 Runtime.getRuntime().maxMemory()
 
-**图片OOM优化**
-
+### 图片OOM优化
 1. 在内存引用上做些处理，常用的有软引用、弱引用
 2. 在内存中加载图片时直接在内存中做处理，如:边界压缩
 3. 动态回收内存
 4. 优化Dalvik虚拟机的堆内存分配
 5. 自定义堆内存大小
 
-**Bitmap分配在native heap还是dalvik heap上？**
-
+### Bitmap分配在native heap还是dalvik heap上？
 BitmapFactory.java里面有几个decode***方法用来创建bitmap，最终都会调用：
 
 ```
@@ -261,7 +253,7 @@ public class Handler {
 
 [Handler的初级、中级、高级问法，你都掌握了吗？](https://juejin.im/post/6893791473121280013)
 
-**Android中为什么主线程不会因为Looper.loop()里的死循环卡死？**
+### Android中为什么主线程不会因为Looper.loop()里的死循环卡死？
 
 在主线程的MessageQueue没有消息时，便阻塞在loop的queue.next()中的nativePollOnce()方法里，
 此时主线程会释放CPU资源进入休眠状态，直到下个消息到达或者有事务发生，通过往pipe管道写端写入数据来唤醒主线程工作。
@@ -269,11 +261,11 @@ public class Handler {
 
 [Android中为什么主线程不会因为Looper.loop()里的死循环卡死？](https://www.zhihu.com/question/34652589/answer/90344494)
 
-**Handler异步消息**
+### Handler异步消息
 1. `public Handler(boolean async)`
 2. `Message.setAsynchronous(boolean async)`
 
-**同步屏障**
+#### 同步屏障
 1. 屏障消息和普通消息的区别在于屏障没有target，普通消息有target是因为它需要将消息分发给对应的target，而屏障不需要被分发，它就是用来挡住普通消息来保证异步消息优先处理的
 2. 屏障和普通消息一样可以根据时间来插入到消息队列中的适当位置，并且只会挡住它后面的同步消息的分发
 3. postSyncBarrier()返回一个int类型的数值，通过这个数值可以撤销屏障即removeSyncBarrier()
@@ -281,8 +273,7 @@ public class Handler {
 
 [Android Handler之同步屏障机制](https://www.jianshu.com/p/ed318296f95f)
 
-**AsyncTask和Handler对比**
-
+### AsyncTask和Handler对比
 1. AsyncTask是android提供的轻量级的异步类,可以直接继承AsyncTask,在类中实现异步操作,
 并提供接口反馈当前异步执行的程度(可以通过接口实现UI进度更新),最后反馈执行的结果给UI主线程.
 - 优点:1.简单,快捷 2.过程可控
@@ -305,8 +296,7 @@ Thread(子线程)运行并生成Message,Looper获取 Message并传递给Handler,
 百度云推送：<br>
 百度云推送的实现技术简单来说就是利用Socket维持Client和Server间的一个TCP长连接，通过这种方式能大大降低由轮询方式带来的Device的耗电量和数据访问流量。
 
-**移动端获取网络数据优化的几个点**
-
+### 移动端获取网络数据优化的几个点
 1. 连接复用: 节省连接建立时间，如开启keep-alive <br>
 对于Android来说默认情况下HttpURLConnection和HttpClient都开启了keep-alive。只是2.2之前HttpURLConnection存在影响连接池的Bug
 2. 请求合并: 即将多个请求合并为一个进行请求，比较常见的就是网页中的CSSImage Sprites。如果某个页面内请求过多，也可以考虑做一定的请求合并
@@ -333,7 +323,7 @@ View的绘制主要涉及三个方法: onMeasure()、onLayout()和onDraw()。
 2. 在执行onMeasure()，onLayout()方法时都会先通过相应的标志位或者对应的坐标点来判断是否需要执行对应的函数，
 如我们经常调用的invalidate方法就只会执行onDraw方法，因为此时的视图大小和位置均未发生改变，除非调用requestLayout方法完整强制进行view 的绘制，从而执行上面三个方法。
 
-**Android View draw 流程**
+### Android View draw 流程
 
 View中：
 
@@ -372,8 +362,7 @@ protected void dispatchDraw(Canvas canvas) {
 
 自定义ViewGroup，onDraw可能不会被调用，原因是需要先设置一个背景(颜色或图)，因此，一般重写dispatchDraw来绘制ViewGroup。
 
-**SurfaceView和View的区别**
-
+### SurfaceView和View的区别
 SurfaceView在新的线程中更新画面，而View必须在UI线程中更新画面。
 
 在UI线程中更新画面可能会引发问题，比如你更新画面的时间过长，那么你的主UI线程会被你正在画的函数阻塞。那么将无法响应按键，触屏等消息。
@@ -381,8 +370,7 @@ SurfaceView由于是在新的线程中更新画面所以不会阻塞UI线程。�
 比如你触屏了一下，你需要SurfaceView中thread处理，一般就需要有一个event queue的设计来保存 touch event，这会稍稍复杂一点，因为涉及到线程同步。
 
 
-**include merge ViewStub 标签**
-
+### include merge ViewStub 标签
 简言之: include merge都是用来解决重复布局的问题，但是merge标签能够在布局重用的时候减少UI层级结构。
 
 ViewStub标签是用来给其他的view事先占据好位置，当需要的时候调用inflater()或者是 setVisible()方法显示这些View。
@@ -405,7 +393,6 @@ ViewStub标签是用来给其他的view事先占据好位置，当需要的时�
 
 
 ## 11. RecyclerView
-
 [RecyclerView缓存机制](https://www.wanandroid.com/wenda/show/14222)
 [Android ListView 与 RecyclerView 对比浅析--缓存机制](https://mp.weixin.qq.com/s/-CzDkEur-iIX0lPMsIS0aA)
 
@@ -420,8 +407,7 @@ Scroller执行流程里面的三个核心方法 mScroller.startScroll() mScrolle
 
 
 ## 13. Android 动画原理
-**补间动画**
-
+### 补间动画
 在每一次VSYNC到来时，在View的draw方法里面，根据当前时间计算动画进度，计算出一个需要变换的Transformation矩阵，
 然后最终设置到canvas上去，调用canvas concat做矩阵变换。
 
@@ -429,24 +415,20 @@ Scroller执行流程里面的三个核心方法 mScroller.startScroll() mScrolle
 
 [Android动画Animation运行原理解析](https://mp.weixin.qq.com/s/uqFErwA5gBGrzW5GoKbnBA)
 
-**属性动画**
-
+### 属性动画
 [属性动画 ValueAnimator 运行原理全解析](https://mp.weixin.qq.com/s/SZXJQNXar0SjApbl4rXicA)
 
 
 ## 14. WebView
-**Native 与 Js通信**
-
+### Native 与 Js通信
 复写 WebView 的 WebChromeClient 类的 onJsPrompt 方法，按照一定的协议，传递方法和参数，通过 WebView.loadUrl 回调执行结果。
 Js 中执行 window.prompt 调用 Native 方法。
 
-**loadUrl 与 evaluateJavascript 的区别**
-
+### loadUrl 与 evaluateJavascript 的区别
 1. evaluateJavascript 的执行不会使页面刷新，而方法 loadUrl 的执行则会使页面刷新
 2. evaluateJavascript Android 4.4 后才可使用
 
-**WebView 秒开方案**
-
+### WebView 秒开方案
 1. WebView 内核提前初始化
 2. 资源预置，通过拦截 WebView 资源请求，直接返回本地资源
 3. 数据预取，启动 WebView 的同时开始下载资源，WebView 可以直接使用已下载的资源
@@ -497,8 +479,7 @@ LayoutInflater.from(this).setFactory(new LayoutInflater.Factory() {
 ```
 
 ## 15.热修复原理
-**1.QQ空间**
-
+### 1.QQ空间
 把补丁类生成 patch.dex，在app启动时，使用反射获取当前应用的ClassLoader，也就是 BaseDexClassLoader，
 反射获取其中的pathList，类型为DexPathList，反射获取其中的 Element[] dexElements, 记为elements1;
 然后使用当前应用的ClassLoader作为父ClassLoader，构造出 patch.dex 的 DexClassLoader,
@@ -519,8 +500,7 @@ if (ClassVerifier.PREVENT_VERIFY) {
 
 这样在 odex 过程中，每个类都会出现 Hack 在另一个dex文件中的问题，所以odex的验证过程也就不会继续下去，这样做牺牲了dvm对dex的优化效果了。
 
-**2.Tinker**
-
+### 2.Tinker
 修复前和修复后的apk分别定义为apk1和apk2，tinker自研了一套dex文件差分合并算法，在生成补丁包时，生成一个差分包 patch.dex，
 后端下发patch.dex到客户端时，tinker会开一个线程把旧apk的class.dex和patch.dex合并，生成新的class.dex并存放在本地目录上，
 重新启动时，会使用本地新生成的class.dex对应的elements替换原有的elements数组。
@@ -528,8 +508,7 @@ if (ClassVerifier.PREVENT_VERIFY) {
 资源修复：新建 AssertManager，通过 addAssetPath 函数，加入外部的资源路径，然后将 Resources 的 mAssets 的字段设为新的 AssertManager，
 这样在通过 getResources 去获取资源的时候就可以获取到我们外部的资源了。
 
-**3.Robust**
-
+### 3.Robust
 1. 打基础包时插桩，在每个方法前插入一段类型为 ChangeQuickRedirect 静态变量的逻辑；
 2. 加载补丁时，从补丁包中读取要替换的类及具体替换的方法实现，新建 ClassLoader 加载补丁dex。
 找到补丁对应的 class，通过反射将 ChangeQuickRedirect 静态变量赋值为补丁中的实现，从而代理方法的实现。
@@ -574,14 +553,14 @@ public class StatePatch implements ChangeQuickRedirect {
 
 
 ## 16. 插件化方案
-**VirtualApk**
+### VirtualApk
 1. Activity：在宿主apk中提前占几个坑，然后通过“欺上瞒下”的方式，启动插件apk的Activity；
 因为要支持不同的launchMode以及一些特殊的属性，需要占多个坑。
 2. Service：通过代理Service的方式去分发；主进程和其他进程，VirtualAPK使用了两个代理Service。
 3. BroadcastReceiver：静态转动态。
 4. ContentProvider：通过一个代理Provider进行分发。
 
-**资源id冲突如何解决**
+### 资源id冲突如何解决
 1. 修改aapt源码，定制aapt工具，编译期间修改PP段。(PP字段是资源id的第一个字节，表示包空间)<br>
 DynamicAPK的做法就是如此，定制aapt，替换google的原始aapt，在编译的时候可以传入参数修改PP段：例如传入0x05编译得到的资源的PP段就是0x05。
 2. 修改aapt的产物，即编译后期重新整理插件Apk的资源，编排ID。<br>
@@ -589,15 +568,14 @@ VirtualApk采用的就是这个方案。
 
 
 ## 17. Kotlin
-**协程**
-
+### 协程
 协程是轻量级的线程，它基于线程池API。相比较 RxJava，协程可以使用阻塞的方式写出非阻塞式的代码，解决并发中常见的回调地狱，这是其最大的优点。
 
 [即学即用Kotlin - 协程](https://juejin.im/post/6854573211418361864)
 
 
 ## 18. Android Jetpack
-**Lifecycle**
+### Lifecycle
 1. Activity中调用LifecycleRegistry的addObserver，传入一个LifecycleObserver
 2. 传入的LifecycleObserver被封装成一个ObserverWithState存入集合中，当生命周期发生改变的时候，
 就会遍历这个ObserverWithState集合，并且调用ObserverWithState的dispatchEvent进行分发
@@ -607,14 +585,13 @@ VirtualApk采用的就是这个方案。
 
 [Android 官方架构组件（一）——Lifecycle](https://juejin.im/post/6844903748448288781)
 
-**ViewModel**
+### ViewModel
 1. ViewModel 存储在 Activity 的 NonConfigurationInstances 对象中，该对象用来保存 Activity 重建的数据。
 2. 不持有 UI 引用，不会造成内存泄漏。
 
 
 ## 19. 开源库
-**LeakCanary的核心原理**
-
+### LeakCanary的核心原理
 1. 通过 registerActivityLifecycleCallbacks() 监听各个 Activity 的 onDestroy 方法
 2. Activity 退出后，拿到 Activity 的对象封装成 WeakReference 弱引用对象，
 配合 ReferenceQueue，如果对象被回收，JVM 就会把弱引用存入与之关联的引用队列之中
@@ -624,12 +601,11 @@ VirtualApk采用的就是这个方案。
 
 [EventBus源码详解](https://juejin.im/post/6881265680465788936)
 
-**Glide**
+### Glide
 
 [Android glide使用过程中遇到的坑(进阶篇)](https://www.jianshu.com/p/deccde405e04)
 
-**AndResGuard**
-
+### AndResGuard
 1. 生成新的资源文件目录，里面对资源文件路径进行混淆(其中涉及如何复用旧的mapping文件)，例如将res/drawable/hello.png混淆为r/s/a.png，并将映射关系输出到mapping文件中。
 2. 对资源id进行混淆(其中涉及如何复用旧的mapping文件)，并将映射关系输出到mapping文件中。
 3. 生成新的resources.arsc文件，里面对资源项值字符串池、资源项key字符串池进行混淆替换，对资源项entry中引用的资源项字符串池位置进行修正、并更改相应大小，并打包生成新的apk。
