@@ -12,7 +12,7 @@ class Construct_Binary_Tree_from_Preorder_and_Inorder_Traversal {
             return null;
         }
         List<Integer> preorderList = new ArrayList<>(preorder.length);
-        List<Integer> inorderList = new ArrayList<>(preorder.length);
+        List<Integer> inorderList = new ArrayList<>(inorder.length);
         for (int i : preorder) preorderList.add(i);
         for (int i : inorder) inorderList.add(i);
         return getRoot(preorderList, inorderList);

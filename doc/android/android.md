@@ -1,7 +1,7 @@
 # Android要点
 
 
-## 1. Activity的生命周期，启动模式有哪些？
+## Activity的生命周期，启动模式有哪些？
 
 ### Activity 生命周期
 
@@ -29,7 +29,7 @@ onRestoreInstanceState被调用的前提是，activity A“确实”被系统销
 另外，onRestoreInstanceState的bundle参数也会传递到onCreate方法中，你也可以选择在onCreate方法中做数据还原。
 
 
-## 2. Activity启动过程
+## Activity启动过程
 1. 无论是通过Launcher来启动Activity，还是通过Activity内部调用startActivity接口来启动新的Activity，
 都通过Binder进程间通信进入到ActivityManagerService进程中，并且调用 ActivityManagerService.startActivity接口；
 2. ActivityManagerService调用ActivityStack.startActivityMayWait来做准备要启动的Activity的相关信息；
@@ -53,7 +53,7 @@ ActivityManagerService.startActivity接口的进程，对于通过点击应用�
 [Android应用程序进程启动过程](https://blog.csdn.net/itachi85/article/details/64123035)
 
 
-## 3. 进程间通信
+## 进程间通信
 1. 访问其他应用程序的Activity
 2. Content Provider
 3. Broadcast
@@ -79,7 +79,7 @@ ActivityManagerService.startActivity接口的进程，对于通过点击应用�
 - inout 表现为服务端将会接收到客户端传来对象的完整信息，并且客户端将会同步服务端对该对象的任何变动
 
 
-## 4. ANR问题
+## ANR问题
 ANR一般有三种类型：
 1. KeyDispatchTimeout(5 seconds): 主要类型按键或触摸事件在特定时间内无响应
 2. BroadcastTimeout(10 seconds): BroadcastReceiver在特定时间内无法处理完成
@@ -92,7 +92,6 @@ ANR一般有三种类型：
 4. BroadCastReceiver要进行复杂操作的的时候，可以在onReceive()方法中启动一个 Service来处理。
 
 ### AND 问题排查
-
 1. 导出 trace 文件，adb pull data/anr/traces.txt
 2. 分析 trace
 
@@ -101,7 +100,7 @@ ANR一般有三种类型：
 - 如果IOWait很高，说明ANR有可能是主线程在进行I/O操作造成的。
 
 
-## 5. OOM问题
+## OOM问题
 1. 应用中需要加载大对象，例如Bitmap
 解决方案：当我们需要显示大的bitmap对象或者较多的bitmap的时候，就需要进行压缩来防止OOM问题。
 我们可以通过设置BitmapFactory.Options的inJustDecodeBounds属性为true，这样的话不会加载图片到内存中，
@@ -179,7 +178,28 @@ jobjectGraphicsJNI::createBitmap(JNIEnv* env, SkBitmap* bitmap, jbyteArray buffe
 JNIEnv的NewObject方法返回的是java对象，并不是native对象，所以它会分配到dalvik heap中。
 
 
-## 6. Looper和Handler
+## 性能优化
+### 启动优化
+1. SDK 异步初始化/延迟初始化/懒加载
+2. 分析启动耗时，优化启动调度，优化锁 loadLibrary0 ContextImpl
+
+### 内存优化
+1. LeakCanary 内存泄漏检测
+2. 关注对象和页面的声明周期，推荐使用 JetPack Lifecycle 套件
+3. 使用合理的图片尺寸和编码，推荐 RGB565
+
+### 卡顿优化
+1. BlockCanary 卡顿检测
+2. Systrace 工具检测，分析应用层函数、IO、锁、Binder、CPU 调度等耗时信息
+3. Android Studio Profiler，实时检测 CPU、内存、网络等信息
+
+### 网络优化
+1. DNS 缓存优化
+2. 开启缓存 CacheControl
+3. 升级 HTTP2.0，多路复用，Header 压缩
+4. 针对频繁请求可以考虑使用自定义协议 ProtoBuf
+
+## Looper和Handler
 
 ```
 public class Looper {
@@ -285,7 +305,7 @@ Thread(子线程)运行并生成Message,Looper获取 Message并传递给Handler,
 - 缺点：在单个后台异步处理时，显得代码过多，结构过于复杂（相对性）
 
 
-## 7. Android消息推送机制
+## Android消息推送机制
 几种常见的解决方案：
 1. 轮询(Pull)方式：应用程序应当阶段性的与服务器进行连接并查询是否有新的消息到达，你必须自己实现与服务器之间的通信，例如消息排队等。
 而且你还要考虑轮询的频率，如果太慢可能导致某些消息的延迟，如果太快，则会大量消耗网络带宽和电池。
@@ -306,7 +326,7 @@ Thread(子线程)运行并生成Message,Looper获取 Message并传递给Handler,
 5. 根据用户的当前的网络质量来判断下载什么质量的图片(电商用的比较多)
 
 
-## 8. Serializable 和 Parcelable 的区别
+## Serializable 和 Parcelable 的区别
 1. Parcelable的效率要快于Serializable(这是最主要的区别)。
 - Serializable底层实现需要用到反射，而且也会产生大量的对象(这可能会触发GC)；再者就是Serializable是在IO操作。
 - Parcelable底层实现则不需要反射，而且它是内存操作。
@@ -314,7 +334,7 @@ Thread(子线程)运行并生成Message,Looper获取 Message并传递给Handler,
 3. IPC的时候用Parcelable，是因为它效率高。网络传输和保存至磁盘的时候用Serializable，是因为Parcelable不能保证当外部条件发生变化时数据的连续性。
 
 
-## 9. View
+## View
 ![](https://raw.githubusercontent.com/wangchenyan/android-interview/master/doc/android/image/view_draw_process.jpg)
 
 View的绘制主要涉及三个方法: onMeasure()、onLayout()和onDraw()。
@@ -376,7 +396,7 @@ SurfaceView由于是在新的线程中更新画面所以不会阻塞UI线程。�
 ViewStub标签是用来给其他的view事先占据好位置，当需要的时候调用inflater()或者是 setVisible()方法显示这些View。
 
 
-## 10. Touch 事件机制
+## Touch 事件机制
 1. 事件从Activity.dispatchTouchEvent()开始传递，只要没有被停止或拦截，从最上层的 View(ViewGroup)开始一直往下(子View)传递。
 子 View 可以通过 onTouchEvent()对事件进行处理。
 2. 事件由父 View(ViewGroup)传递给子View，ViewGroup 可以通过 onInterceptTouchEvent()对事件做拦截，停止其往下传递。
@@ -392,12 +412,27 @@ ViewStub标签是用来给其他的view事先占据好位置，当需要的时�
 ![View处理事件流程图](https://raw.githubusercontent.com/wangchenyan/android-interview/master/doc/android/image/touch_event_consume.jpg)
 
 
-## 11. RecyclerView
+## RecyclerView
+### RecyclerView缓存机制
 [RecyclerView缓存机制](https://www.wanandroid.com/wenda/show/14222)
 [Android ListView 与 RecyclerView 对比浅析--缓存机制](https://mp.weixin.qq.com/s/-CzDkEur-iIX0lPMsIS0aA)
 
+1. 一级缓存：mAttachedScrap 和 mChangedScrap<br>
+mAttachedScrap：LayoutManager每次layout子View之前，那些已经添加到RecyclerView中的Item以及被删除的Item的临时存放地。使用场景就是RecyclerView滚动时、还有在可见范围内删除Item后用notifyItemRemoved方法通知更新时；<br>
+mChangedScrap：作用：存放可见范围内有更新的Item。使用场景：可见范围内的Item有更新，并且使用notifyItemChanged方法通知更新时；
+2. 二级缓存：mCachedViews<br>
+mCachedViews：作用：存放滚动过程中没有被重新使用且状态无变化的那些旧Item。场景：滚动，prefetch；
+3. 三级缓存：ViewCacheExtension<br>
+自定义缓存，常规方式无法使用
+4. 四级缓存：RecycledViewPool<br>
+RecycledViewPool：作用：缓存Item的最终站，用于保存那些Removed、Changed、以及mCachedViews满了之后更旧的Item。场景：Item被移除、Item有更新、滚动过程；
 
-## 12. Scroller
+### SnapHelper
+SnapHelper是一个RecyclerView的工具类，本身是抽象类，默认有两种实现LinearSnapHelper和PageSnapHelper。
+他们的主要作用是帮助RecyclerView自定义滑动方式，可以实现像ViewPager或者Gallery的滑动方式（一次翻一页或者一次翻多页）
+
+
+## Scroller
 Scroller执行流程里面的三个核心方法 mScroller.startScroll() mScroller.computeScrollOffset() view.computeScroll()
 1. 在mScroller.startScroll()中为滑动做了一些初始化准备。<br>
 比如:起始坐标，滑动的距离和方向以及持续时间(有默认值)，动画开始时间等
@@ -406,7 +441,7 @@ Scroller执行流程里面的三个核心方法 mScroller.startScroll() mScrolle
 当前时刻应该所处的位置并将其保存在变量mCurrX和 mCurrY中。除此之外该方法还可判断动画是否已经结束。
 
 
-## 13. Android 动画原理
+## Android 动画原理
 ### 补间动画
 在每一次VSYNC到来时，在View的draw方法里面，根据当前时间计算动画进度，计算出一个需要变换的Transformation矩阵，
 然后最终设置到canvas上去，调用canvas concat做矩阵变换。
@@ -419,7 +454,7 @@ Scroller执行流程里面的三个核心方法 mScroller.startScroll() mScrolle
 [属性动画 ValueAnimator 运行原理全解析](https://mp.weixin.qq.com/s/SZXJQNXar0SjApbl4rXicA)
 
 
-## 14. WebView
+## WebView
 ### Native 与 Js通信
 复写 WebView 的 WebChromeClient 类的 onJsPrompt 方法，按照一定的协议，传递方法和参数，通过 WebView.loadUrl 回调执行结果。
 Js 中执行 window.prompt 调用 Native 方法。
@@ -437,7 +472,7 @@ Js 中执行 window.prompt 调用 Native 方法。
 [Android Webview H5 秒开方案实现](https://mp.weixin.qq.com/s/XfBt_gTw0gN7tXzuyP4PTw)
 
 
-## 14. 换肤方案
+## 换肤方案
 通过 AssetManager 加载 apk 文件中的资源，通过 LayoutInflater.Factory hook View 创建，两者配合可以做到动态换肤。
 
 [Android 常用换肤方式以及原理分析](https://juejin.im/post/6844903670270656525)
@@ -478,8 +513,8 @@ LayoutInflater.from(this).setFactory(new LayoutInflater.Factory() {
 });
 ```
 
-## 15.热修复原理
-### 1.QQ空间
+##热修复原理
+###QQ空间
 把补丁类生成 patch.dex，在app启动时，使用反射获取当前应用的ClassLoader，也就是 BaseDexClassLoader，
 反射获取其中的pathList，类型为DexPathList，反射获取其中的 Element[] dexElements, 记为elements1;
 然后使用当前应用的ClassLoader作为父ClassLoader，构造出 patch.dex 的 DexClassLoader,
@@ -500,7 +535,7 @@ if (ClassVerifier.PREVENT_VERIFY) {
 
 这样在 odex 过程中，每个类都会出现 Hack 在另一个dex文件中的问题，所以odex的验证过程也就不会继续下去，这样做牺牲了dvm对dex的优化效果了。
 
-### 2.Tinker
+###Tinker
 修复前和修复后的apk分别定义为apk1和apk2，tinker自研了一套dex文件差分合并算法，在生成补丁包时，生成一个差分包 patch.dex，
 后端下发patch.dex到客户端时，tinker会开一个线程把旧apk的class.dex和patch.dex合并，生成新的class.dex并存放在本地目录上，
 重新启动时，会使用本地新生成的class.dex对应的elements替换原有的elements数组。
@@ -508,7 +543,7 @@ if (ClassVerifier.PREVENT_VERIFY) {
 资源修复：新建 AssertManager，通过 addAssetPath 函数，加入外部的资源路径，然后将 Resources 的 mAssets 的字段设为新的 AssertManager，
 这样在通过 getResources 去获取资源的时候就可以获取到我们外部的资源了。
 
-### 3.Robust
+###Robust
 1. 打基础包时插桩，在每个方法前插入一段类型为 ChangeQuickRedirect 静态变量的逻辑；
 2. 加载补丁时，从补丁包中读取要替换的类及具体替换的方法实现，新建 ClassLoader 加载补丁dex。
 找到补丁对应的 class，通过反射将 ChangeQuickRedirect 静态变量赋值为补丁中的实现，从而代理方法的实现。
@@ -552,7 +587,7 @@ public class StatePatch implements ChangeQuickRedirect {
 ```
 
 
-## 16. 插件化方案
+## 插件化方案
 ### VirtualApk
 1. Activity：在宿主apk中提前占几个坑，然后通过“欺上瞒下”的方式，启动插件apk的Activity；
 因为要支持不同的launchMode以及一些特殊的属性，需要占多个坑。
@@ -567,14 +602,14 @@ DynamicAPK的做法就是如此，定制aapt，替换google的原始aapt，在�
 VirtualApk采用的就是这个方案。
 
 
-## 17. Kotlin
+## Kotlin
 ### 协程
 协程是轻量级的线程，它基于线程池API。相比较 RxJava，协程可以使用阻塞的方式写出非阻塞式的代码，解决并发中常见的回调地狱，这是其最大的优点。
 
 [即学即用Kotlin - 协程](https://juejin.im/post/6854573211418361864)
 
 
-## 18. Android Jetpack
+## Android Jetpack
 ### Lifecycle
 1. Activity中调用LifecycleRegistry的addObserver，传入一个LifecycleObserver
 2. 传入的LifecycleObserver被封装成一个ObserverWithState存入集合中，当生命周期发生改变的时候，
@@ -590,15 +625,22 @@ VirtualApk采用的就是这个方案。
 2. 不持有 UI 引用，不会造成内存泄漏。
 
 
-## 19. 开源库
+## 开源库
 ### LeakCanary的核心原理
-1. 通过 registerActivityLifecycleCallbacks() 监听各个 Activity 的 onDestroy 方法
+1. 通过 registerActivityLifecycleCallbacks() 监听各个 Activity 的 onDestroy 方法<br>
+Fragment: 通过向 Activity 的 FragmentManager 以及 childFragmentManager 注册一个 FragmentLifecycleCallback 来监听 Fragment Destroy<br>
+ViewModel: 通过反射监听 ViewModel onCleared() 事件
 2. Activity 退出后，拿到 Activity 的对象封装成 WeakReference 弱引用对象，
 配合 ReferenceQueue，如果对象被回收，JVM 就会把弱引用存入与之关联的引用队列之中
 3. 通过手动 Runtime.getRuntime().gc() 垃圾回收
 4. 根据 ReferenceQueue 是否有值来判断对象是否被回收，如果有值，说明 Activity 已经被回收，没有泄露
 5. 如果没有移除，通过 android 原生接口 Debug.dumpHprofData()，把 Hprof 文件搞下来，通过 haha 这个第三方库去解析是否有指定 Activity 的残留
 
+### BlockCanary
+1. 通过 Looper.setMessageLogging() 给主线程消息设置一个 Printer，记录每个消息的执行时间
+2. 通过 Thread.getStackTrace() 获取执行堆栈
+
+### EventBus
 [EventBus源码详解](https://juejin.im/post/6881265680465788936)
 
 ### Glide
