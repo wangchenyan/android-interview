@@ -46,3 +46,9 @@
 - Linked List
   - [Odd Even Linked List](https://leetcode.com/explore/interview/card/top-interview-questions-medium/107/linked-list/784/)
   - [Binary Tree Zigzag Level Order Traversal](https://leetcode.com/explore/interview/card/top-interview-questions-medium/108/trees-and-graphs/787/)
+
+- Dynamic Programming
+  - [Jump Game](https://leetcode.com/explore/interview/card/top-interview-questions-medium/111/dynamic-programming/807/)
+  - [Unique Paths](https://leetcode.com/explore/interview/card/top-interview-questions-medium/111/dynamic-programming/808/)
+  - [Coin Change](https://leetcode.com/explore/interview/card/top-interview-questions-medium/111/dynamic-programming/809/)
+  - [Longest Increasing Subsequence](https://leetcode.com/explore/interview/card/top-interview-questions-medium/111/dynamic-programming/810/)

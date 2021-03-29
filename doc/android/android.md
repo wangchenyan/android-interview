@@ -185,7 +185,7 @@ JNIEnv的NewObject方法返回的是java对象，并不是native对象，所以�
 
 ### 内存优化
 1. LeakCanary 内存泄漏检测
-2. 关注对象和页面的声明周期，推荐使用 JetPack Lifecycle 套件
+2. 关注对象和页面的生命周期，推荐使用 JetPack Lifecycle 套件
 3. 使用合理的图片尺寸和编码，推荐 RGB565
 
 ### 卡顿优化
@@ -421,7 +421,7 @@ ViewStub标签是用来给其他的view事先占据好位置，当需要的时�
 mAttachedScrap：LayoutManager每次layout子View之前，那些已经添加到RecyclerView中的Item以及被删除的Item的临时存放地。使用场景就是RecyclerView滚动时、还有在可见范围内删除Item后用notifyItemRemoved方法通知更新时；<br>
 mChangedScrap：作用：存放可见范围内有更新的Item。使用场景：可见范围内的Item有更新，并且使用notifyItemChanged方法通知更新时；
 2. 二级缓存：mCachedViews<br>
-mCachedViews：作用：存放滚动过程中没有被重新使用且状态无变化的那些旧Item。场景：滚动，prefetch；
+mCachedViews：作用：存放滚动过程中没有被重新使用且状态无变化的那些旧Item，即离屏缓存，默认容量2。场景：滚动，prefetch；
 3. 三级缓存：ViewCacheExtension<br>
 自定义缓存，常规方式无法使用
 4. 四级缓存：RecycledViewPool<br>
@@ -453,6 +453,11 @@ Scroller执行流程里面的三个核心方法 mScroller.startScroll() mScrolle
 ### 属性动画
 [属性动画 ValueAnimator 运行原理全解析](https://mp.weixin.qq.com/s/SZXJQNXar0SjApbl4rXicA)
 
+### Lottie
+使用工具将 AE 动画导出为 Json 文件，该文件描述了该动画，而 lottie 的原理就是将描述的动画用 native code 翻译出来，核心原理是 canvas 绘制。
+lottie 随属性动画修改 progress，每一个 Layer 根据当前的 progress 绘制所对应的帧内容，progress 值变为1，动画结束。（有点类似于帧动画）
+[Lottie 实现炫酷动画背后的原理](https://juejin.cn/post/6844903828815347726)
+
 
 ## WebView
 ### Native 与 Js通信
@@ -476,7 +481,7 @@ Js 中执行 window.prompt 调用 Native 方法。
 通过 AssetManager 加载 apk 文件中的资源，通过 LayoutInflater.Factory hook View 创建，两者配合可以做到动态换肤。
 
 [Android 常用换肤方式以及原理分析](https://juejin.im/post/6844903670270656525)
- 
+
 ```
 String apkPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/test.apk";
 //通过反射获取未安装apk的AssetManager
@@ -621,8 +626,34 @@ VirtualApk采用的就是这个方案。
 [Android 官方架构组件（一）——Lifecycle](https://juejin.im/post/6844903748448288781)
 
 ### ViewModel
-1. ViewModel 存储在 Activity 的 NonConfigurationInstances 对象中，该对象用来保存 Activity 重建的数据。
-2. 不持有 UI 引用，不会造成内存泄漏。
+1. 在 Activity 中提供了 onRetainNonConfigurationInstance 方法，用于处理配置发生改变时数据的保存
+2. ComponentActivity 重写 onRetainNonConfigurationInstance 方法，将 ViewModelStore 存储在 NonConfigurationInstances
+3. Activity 重新创建后，在 getViewModelStore 中通过 getLastNonConfigurationInstance 获取旧 Activity 保存的 ViewModelStore
+4. Fragment 的 ViewModel 存储在 Activity 的 ViewModelStore 中
+
+[关于ViewModel你应该知道的知识点](https://juejin.cn/post/6890077903648718861#heading-13)
+
+### DataStore
+SharedPreferences 缺点
+1. 效率低。直接I/O读写，使用 xml 格式，全量更新。
+2. commit 可能会导致 ANR。commit 提交是同步的，直到磁盘操作成功后才会完成，所以当数据量比较大时，使用commit很可能引起ANR。
+3. apply 可能导致 ANR。apply 异步写入时会向 QueuedWork 中添加一个等待写入完成任务，当生命周期处于 handleStopActivity 
+的时候会调用 QueuedWork.waitToFinish 等待写入任务执行完毕。
+4. getXXX() 导致ANR。get 方法必须等待 SP 异步加载完毕，有可能导致ANR。
+
+MMKV 优点
+1. 通过 mmap 内存映射文件，由操作系统负责将内存回写到文件，不必担心 crash 导致数据丢失。
+2. 使用 protobuf 协议序列化数据，性能高。
+3. MMKV是增量更新，有性能优势。
+
+[再见SharedPreferences，你好MMKV！](https://mp.weixin.qq.com/s/VBMDIE0QHXQAMuIjon-Fjg)
+
+Preferences DataStore 优点
+- DataStore 是基于 Flow 实现的，所以保证了在主线程的安全性
+- 以事务方式处理更新数据，事务有四大特性（原子性、一致性、 隔离性、持久性）
+- 没有 apply() 和 commit() 等等数据持久的方法
+- 自动完成 SharedPreferences 迁移到 DataStore，保证数据一致性，不会造成数据损坏
+- 可以监听到操作成功或者失败结果
 
 
 ## 开源库
