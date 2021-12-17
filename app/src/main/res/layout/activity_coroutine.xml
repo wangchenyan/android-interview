@@ -5,20 +5,14 @@
     android:orientation="vertical">
 
     <Button
-        android:id="@+id/btnFlow"
+        android:id="@+id/btnStart"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="flow" />
+        android:text="start" />
 
     <Button
-        android:id="@+id/btnCoroutine"
+        android:id="@+id/btnCancel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="coroutine" />
-
-    <Button
-        android:id="@+id/btnAsyncLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="async" />
+        android:text="cancel" />
 </LinearLayout>

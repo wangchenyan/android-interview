@@ -1,61 +1,64 @@
 package me.wcy.app
 
-import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
-import android.content.ServiceConnection
 import android.os.Bundle
-import android.os.IBinder
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleObserver
-import androidx.lifecycle.OnLifecycleEvent
-import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import com.facebook.common.references.CloseableReference
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import me.wcy.app.asynclayout.AsyncLayoutActivity
+import me.wcy.app.databinding.ActivityMainBinding
+import java.io.Closeable
 
 class MainActivity : AppCompatActivity() {
+    private val viewBinding by viewBindings<ActivityMainBinding>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(viewBinding.root)
 
-        val mainViewModel = ViewModelProvider(this).get(MainViewModel::class.java)
+        //startActivity(Intent(this, FlowDemoActivity::class.java))
 
-        val intent = Intent()
-        intent.action = "me.wcy.user"
-        intent.component = ComponentName("me.wcy.app", "me.wcy.app.aidl.UserService")
-        bindService(intent, conn, Context.BIND_AUTO_CREATE)
-    }
-
-    override fun onStart() {
-        super.onStart()
-        lifecycle.addObserver(object : LifecycleObserver {
-            @OnLifecycleEvent(Lifecycle.Event.ON_CREATE)
-            fun onCreate() {
-                Log.e("Life", "onCreate")
-            }
-
-            @OnLifecycleEvent(Lifecycle.Event.ON_START)
-            fun onStart() {
-                Log.e("Life", "onStart")
-            }
-
-            @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
-            fun onResume() {
-                Log.e("Life", "onResume")
-            }
-        })
-    }
-
-    private var userInterface: IUserInterface? = null
-
-    private val conn = object : ServiceConnection {
-        override fun onServiceDisconnected(name: ComponentName?) {
-            userInterface = null
+        viewBinding.btnFlow.setOnClickListener {
+            startActivity(Intent(this, FlowDemoActivity::class.java))
+        }
+        viewBinding.btnCoroutine.setOnClickListener {
+            startActivity(Intent(this, CoroutineActivity::class.java))
+        }
+        viewBinding.btnAsyncLayout.setOnClickListener {
+            startActivity(Intent(this, AsyncLayoutActivity::class.java))
         }
 
-        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            userInterface = IUserInterface.Stub.asInterface(service)
+        lifecycleScope.launch {
+            val res = test()
+            Log.e("WCY", "res=$res")
         }
+    }
+
+    private suspend fun test(): String {
+        return withContext(Dispatchers.IO) {
+            cancel()
+            return@withContext "lalala"
+        }
+    }
+
+    private fun closeable() {
+        val model = Model()
+        val ref = CloseableReference.of(model)
+        ref.get()
+        // do something
+        ref.close()
+    }
+}
+
+class Model : Closeable {
+    var value: Int = 0
+
+    override fun close() {
+
     }
 }
