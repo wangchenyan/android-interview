@@ -16,10 +16,8 @@
 
 - standard：每次激活Activity时(startActivity)，都创建Activity实例，并放入任务栈；
 - singleTop：如果某个Activity自己激活自己，即任务栈栈顶就是该Activity，则不需要创建，其余情况都要创建Activity实例；
--
-
-singleTask：如果要激活的那个Activity在任务栈中存在该实例，则不需要创建，只需要把此Activity放入栈顶，即把该Activity以上的Activity实例都pop，并调用其onNewIntent；
-
+- singleTask：如果要激活的那个Activity在任务栈中存在该实例，则不需要创建，只需要把此Activity放入栈顶，
+  即把该Activity以上的Activity实例都pop，并调用其onNewIntent；
 - singleInstance：应用A的任务栈中创建了MainActivity实例，如果应用B也要激活 MainActivity，则不需要创建，两应用共享该Activity实例。
 
 onSaveInstanceState的调用遵循一个重要原则，即当系统“未经你许可”时销毁了你的 activity，则onSaveInstanceState会被系统调用，
@@ -46,9 +44,8 @@ A的onRestoreInstanceState方法不会被执行。
    会调用startProcessLocked来创建一个新的进程，而对于通过在Activity内部调用startActivity来启动新的Activity来说，
    这一步是不需要执行的，因为新的Activity就在原来的Activity所在的进程中进行启动；
 6. ActivityManagerService调用ApplicationThread.scheduleLaunchActivity接口，通知相应的进程执行启动Activity的操作；
-7.
-
-ApplicationThread把这个启动Activity的操作转发给ActivityThread，ActivityThread通过ClassLoader导入相应的Activity类，然后把它启动起来。
+7. ApplicationThread把这个启动Activity的操作转发给ActivityThread，ActivityThread通过ClassLoader导入相应的Activity类，
+   然后把它启动起来。
 
 ### Zygote的启动过程
 
@@ -115,9 +112,11 @@ ANR一般有三种类型：
 
 ## OOM问题
 
-1. 应用中需要加载大对象，例如Bitmap 解决方案：当我们需要显示大的bitmap对象或者较多的bitmap的时候，就需要进行压缩来防止OOM问题。
-   我们可以通过设置BitmapFactory.Options的inJustDecodeBounds属性为true，这样的话不会加载图片到内存中，
-   但是会将图片的width和height属性读取出来，我们可以利用这个属性来对bitmap进行压缩。Options.inSampleSize 可以设置压缩比。
+1. 应用中需要加载大对象，例如Bitmap
+
+解决方案：当我们需要显示大的bitmap对象或者较多的bitmap的时候，就需要进行压缩来防止OOM问题。
+我们可以通过设置BitmapFactory.Options的inJustDecodeBounds属性为true，这样的话不会加载图片到内存中，
+但是会将图片的width和height属性读取出来，我们可以利用这个属性来对bitmap进行压缩。Options.inSampleSize 可以设置压缩比。
 
 持有无用的对象使其无法被gc，导致Memory Leak。
 
@@ -138,7 +137,8 @@ Context对象，该对象生命周期和应用的生命周期是绑定的。 选
 4. 非静态内部类导致的Memory leak
 
 非静态的内部类会持有外部类的一个引用，所以和前面context说到的一样，如果该内部类生命周期超过外部类的生命周期，
-就可能引起内存泄露了，如AsyncTask和Handler。因为在Activity中我们可能会用到匿名内部类，所以要小心管理其生命周期。 如果明确生命周期较外部类长的话，那么应该使用静态内部类。
+就可能引起内存泄露了，如AsyncTask和Handler。因为在Activity中我们可能会用到匿名内部类，所以要小心管理其生命周期。
+如果明确生命周期较外部类长的话，那么应该使用静态内部类。
 
 5. Drawable对象的回调隐含的Memory leak
 

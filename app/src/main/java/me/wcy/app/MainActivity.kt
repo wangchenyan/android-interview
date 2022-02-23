@@ -21,6 +21,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
 
+        CustomModuleManager.create()
+
         //startActivity(Intent(this, FlowDemoActivity::class.java))
 
         viewBinding.btnFlow.setOnClickListener {
@@ -53,6 +55,29 @@ class MainActivity : AppCompatActivity() {
         // do something
         ref.close()
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        CustomModuleManager.destroy()
+    }
+}
+
+interface CustomModuleManager {
+    companion object {
+        private var member: CustomModuleManagerImpl? = null
+
+        fun create() {
+            member = CustomModuleManagerImpl()
+        }
+
+        fun destroy() {
+            member = null
+        }
+    }
+}
+
+class CustomModuleManagerImpl : CustomModuleManager {
+
 }
 
 class Model : Closeable {

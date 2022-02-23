@@ -32,6 +32,8 @@
         <activity android:name=".CoroutineActivity" />
         <activity android:name=".asynclayout.AsyncLayoutActivity" />
         <activity android:name=".BlockingQueueActivity" />
+        <activity android:name=".viewlifecycle.ViewLifecycleActivity" />
+        <activity android:name=".dialogfragment.DialogFragmentActivity" />
     </application>
 
 </manifest>
