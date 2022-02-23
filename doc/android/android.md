@@ -137,8 +137,7 @@ Context对象，该对象生命周期和应用的生命周期是绑定的。 选
 4. 非静态内部类导致的Memory leak
 
 非静态的内部类会持有外部类的一个引用，所以和前面context说到的一样，如果该内部类生命周期超过外部类的生命周期，
-就可能引起内存泄露了，如AsyncTask和Handler。因为在Activity中我们可能会用到匿名内部类，所以要小心管理其生命周期。
-如果明确生命周期较外部类长的话，那么应该使用静态内部类。
+就可能引起内存泄露了，如AsyncTask和Handler。因为在Activity中我们可能会用到匿名内部类，所以要小心管理其生命周期。 如果明确生命周期较外部类长的话，那么应该使用静态内部类。
 
 5. Drawable对象的回调隐含的Memory leak
 
@@ -162,6 +161,11 @@ Context对象，该对象生命周期和应用的生命周期是绑定的。 选
 5. 自定义堆内存大小
 
 ### Bitmap分配在native heap还是dalvik heap上？
+
+- Android 2.3.3(API level 10) 和更早的版本，Bitmap 对象和对象里对应的像素数据是分开存储的，Bitmap 存在虚拟机的堆里， 而像素数据存储在 Native
+  内存里。
+- 从 Android 3.0(API level 11) 到 Android 7.1(API level 25)，Bitmap 对象及其像素数据都存储在虚拟机的堆里。
+- 从 Android 8.0(API level 26) 开始，Bitmap 对象存储在虚拟机的堆里，而对应的像素数据存储在 Native 堆里。
 
 BitmapFactory.java里面有几个decode***方法用来创建bitmap，最终都会调用：
 
@@ -188,7 +192,7 @@ jobjectGraphicsJNI::createBitmap(JNIEnv* env, SkBitmap* bitmap, jbyteArray buffe
 }
 ```
 
-从代码中可以看到bitmap对象是通过env->NewObject( )创建的，到这里疑惑就解开了，bitmap对象是虚拟机创建的，
+从代码中可以看到bitmap对象是通过env->NewObject()创建的，到这里疑惑就解开了，bitmap对象是虚拟机创建的，
 JNIEnv的NewObject方法返回的是java对象，并不是native对象，所以它会分配到dalvik heap中。
 
 ## 性能优化
@@ -219,7 +223,7 @@ JNIEnv的NewObject方法返回的是java对象，并不是native对象，所以�
 
 ## Looper和Handler
 
-```
+```java
 public class Looper {
     // 每个线程中的Looper对象其实是一个ThreadLocal，即线程本地存储(TLS)对象
     private static final ThreadLocal sThreadLocal = new ThreadLocal();
@@ -227,12 +231,14 @@ public class Looper {
     final MessageQueue mQueue;
     // 当前线程
     Thread mThread;
+
     // 每个Looper对象中有它的消息队列，和它所属的线程
     private Looper() {
         mQueue = new MessageQueue();
         mRun = true;
         mThread = Thread.currentThread();
     }
+
     // 我们调用该方法会在调用线程的TLS中创建Looper对象
     public static final void prepare() {
         if (sThreadLocal.get() != null) {
@@ -241,10 +247,11 @@ public class Looper {
         }
         sThreadLocal.set(new Looper());
     }
+
     public static final void loop() {
         Looper me = myLooper(); //得到当前线程Looper
         MessageQueue queue = me.mQueue; //得到当前looper的MQ
-        
+
         // 这两行没看懂，不过不影响理解
         Binder.clearCallingIdentity();
         final long ident = Binder.clearCallingIdentity();
@@ -256,23 +263,20 @@ public class Looper {
                     // message没有target为结束信号，退出循环
                     return;
                 }
-                ……
                 // 非常重要！将真正的处理工作交给message的target，即后面要讲的handler
                 msg.target.dispatchMessage(msg);
-                ……
                 // 回收message资源
                 msg.recycle();
             }
         }
     }
+
     public static Looper myLooper() {
         return sThreadLocal.get();
     }
-    ……
 }
 
 public class Handler {
-    ……
     public void dispatchMessage(Message msg) {
         if (msg.callback != null) {
             handleCallback(msg);
@@ -285,7 +289,6 @@ public class Handler {
             handleMessage(msg);
         }
     }
-    ……
 }
 ```
 
@@ -337,12 +340,11 @@ public class Handler {
    这个方案的好处是，可以实现完全的实时操作。但是问题是这个方案的成本相对比较高。
 3. 持久连接(Push)方式：这个方案可以解决由轮询带来的性能问题，但是还是会消耗手机的电池。
 
-百度云推送：<br>
-百度云推送的实现技术简单来说就是利用Socket维持Client和Server间的一个TCP长连接，通过这种方式能大大降低由轮询方式带来的Device的耗电量和数据访问流量。
+百度云推送：百度云推送的实现技术简单来说就是利用Socket维持Client和Server间的一个TCP长连接，通过这种方式能大大降低由轮询方式带来的Device的耗电量和数据访问流量。
 
 ### 移动端获取网络数据优化的几个点
 
-1. 连接复用: 节省连接建立时间，如开启keep-alive <br>
+1. 连接复用: 节省连接建立时间，如开启keep-alive
    对于Android来说默认情况下HttpURLConnection和HttpClient都开启了keep-alive。只是2.2之前HttpURLConnection存在影响连接池的Bug
 2. 请求合并: 即将多个请求合并为一个进行请求，比较常见的就是网页中的CSSImage Sprites。如果某个页面内请求过多，也可以考虑做一定的请求合并
 3. 减少请求数据的大小: 对于post请求，body可以做gzip压缩的，header也可以作数据压缩(不过只支持http 2.0)
@@ -448,14 +450,16 @@ ViewStub标签是用来给其他的view事先占据好位置，当需要的时�
 [Android ListView 与 RecyclerView 对比浅析--缓存机制](https://mp.weixin.qq.com/s/-CzDkEur-iIX0lPMsIS0aA)
 
 1. 一级缓存：mAttachedScrap 和 mChangedScrap<br>
-   mAttachedScrap：LayoutManager每次layout子View之前，那些已经添加到RecyclerView中的Item以及被删除的Item的临时存放地。使用场景就是RecyclerView滚动时、还有在可见范围内删除Item后用notifyItemRemoved方法通知更新时；<br>
+   mAttachedScrap：LayoutManager每次layout子View之前，那些已经添加到RecyclerView中的Item以及被删除的Item的临时存放地。
+   使用场景就是RecyclerView滚动时、还有在可见范围内删除Item后用notifyItemRemoved方法通知更新时；
    mChangedScrap：作用：存放可见范围内有更新的Item。使用场景：可见范围内的Item有更新，并且使用notifyItemChanged方法通知更新时；
 2. 二级缓存：mCachedViews<br>
    mCachedViews：作用：存放滚动过程中没有被重新使用且状态无变化的那些旧Item，即离屏缓存，默认容量2。场景：滚动，prefetch；
 3. 三级缓存：ViewCacheExtension<br>
    自定义缓存，常规方式无法使用
 4. 四级缓存：RecycledViewPool<br>
-   RecycledViewPool：作用：缓存Item的最终站，用于保存那些Removed、Changed、以及mCachedViews满了之后更旧的Item。场景：Item被移除、Item有更新、滚动过程；
+   RecycledViewPool：作用：缓存Item的最终站，用于保存那些Removed、Changed、以及mCachedViews满了之后更旧的Item。
+   场景：Item被移除、Item有更新、滚动过程；
 
 ### SnapHelper
 
@@ -484,6 +488,10 @@ concat做矩阵变换。
 [Android动画Animation运行原理解析](https://mp.weixin.qq.com/s/uqFErwA5gBGrzW5GoKbnBA)
 
 ### 属性动画
+
+如果当前存在要运行的动画，那么 AnimationHandler 会去通过 Choreographer 向底层注册监听下一个屏幕刷新信号， 当接收到信号时，它的 mFrameCallback
+会开始进行工作，工作的内容包括遍历列表来分别处理每个属性动画在当前帧的行为， 处理完列表中的所有动画后，如果列表还不为 0，那么它又会通过 Choreographer
+再去向底层注册监听下一个屏幕刷新信号事件，如此反复，直至所有的动画都结束。
 
 [属性动画 ValueAnimator 运行原理全解析](https://mp.weixin.qq.com/s/SZXJQNXar0SjApbl4rXicA)
 
@@ -520,40 +528,44 @@ window.prompt 调用 Native 方法。
 
 [Android 常用换肤方式以及原理分析](https://juejin.im/post/6844903670270656525)
 
-```
-String apkPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/test.apk";
-//通过反射获取未安装apk的AssetManager
-AssetManager assetManager = AssetManager.class.newInstance();
-//通过反射增加资源路径
-Method method = assetManager.getClass().getMethod("addAssetPath", String.class);
-method.invoke(assetManager, apkPath);
-File dexDir = ctx.getDir("dex", Context.MODE_PRIVATE);
-if (!dexDir.exists()) {
-    dexDir.mkdir();
-}
-//获取未安装apk的Resources
-Resources resources = new Resources(assetManager, ctx.getResources().getDisplayMetrics(),
-        ctx.getResources().getConfiguration());
-//获取未安装apk的ClassLoader
-ClassLoader classLoader = new DexClassLoader(apkPath, dexDir.getAbsolutePath(), null, ctx.getClassLoader());
-//反射获取class
-Class aClass = classLoader.loadClass("com.noob.resourcesapp.R$drawable");
-int id = (int) aClass.getField("icon_collect").get(null);
-imageView.setImageDrawable(resources.getDrawable(id));
-```
-
-```
-LayoutInflater.from(this).setFactory(new LayoutInflater.Factory() {
-    @Override
-    public View onCreateView(String name, Context context, AttributeSet attrs) {
-        Log.e("MainActivity", "name :" + name);
-        int count = attrs.getAttributeCount();
-        for (int i = 0; i < count; i++) {
-            Log.e("MainActivity", "AttributeName :" + attrs.getAttributeName(i) + "AttributeValue :"+ attrs.getAttributeValue(i));
+```java
+class Skin {
+    void loadRes() {
+        String apkPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/test.apk";
+        // 通过反射获取未安装apk的AssetManager
+        AssetManager assetManager = AssetManager.class.newInstance();
+        // 通过反射增加资源路径
+        Method method = assetManager.getClass().getMethod("addAssetPath", String.class);
+        method.invoke(assetManager, apkPath);
+        File dexDir = ctx.getDir("dex", Context.MODE_PRIVATE);
+        if (!dexDir.exists()) {
+            dexDir.mkdir();
         }
-        return null;
+        // 获取未安装apk的Resources
+        Resources resources = new Resources(assetManager, ctx.getResources().getDisplayMetrics(),
+                ctx.getResources().getConfiguration());
+        // 获取未安装apk的ClassLoader
+        ClassLoader classLoader = new DexClassLoader(apkPath, dexDir.getAbsolutePath(), null, ctx.getClassLoader());
+        // 反射获取class
+        Class aClass = classLoader.loadClass("com.noob.resourcesapp.R$drawable");
+        int id = (int) aClass.getField("icon_collect").get(null);
+        imageView.setImageDrawable(resources.getDrawable(id));
     }
-});
+
+    void setFactory() {
+        LayoutInflater.from(this).setFactory(new LayoutInflater.Factory() {
+            @Override
+            public View onCreateView(String name, Context context, AttributeSet attrs) {
+                Log.e("MainActivity", "name :" + name);
+                int count = attrs.getAttributeCount();
+                for (int i = 0; i < count; i++) {
+                    Log.e("MainActivity", "AttributeName :" + attrs.getAttributeName(i) + "AttributeValue :" + attrs.getAttributeValue(i));
+                }
+                return null;
+            }
+        });
+    }
+}
 ```
 
 ## 热修复原理
@@ -562,18 +574,22 @@ LayoutInflater.from(this).setFactory(new LayoutInflater.Factory() {
 
 把补丁类生成 patch.dex，在app启动时，使用反射获取当前应用的ClassLoader，也就是 BaseDexClassLoader，
 反射获取其中的pathList，类型为DexPathList，反射获取其中的 Element[] dexElements, 记为elements1;
-然后使用当前应用的ClassLoader作为父ClassLoader，构造出 patch.dex 的 DexClassLoader, 通用通过反射可以获取到对应的 Element[]
+然后使用当前应用的ClassLoader作为父ClassLoader，构造出 patch.dex 的 DexClassLoader, 通过反射可以获取到对应的 Element[]
 dexElements，记为elements2。将elements2拼在elements1前面，然后再去调用加载类的方法loadClass。
 
-隐藏的技术难点 CLASS_ISPREVERIFIED 问题 apk在安装时会进行dex文件进行验证和优化操作。这个操作能让app运行时直接加载odex文件，能够减少对内存占用，
-加快启动速度，如果没有odex操作，需要从apk包中提取dex再运行。
-在验证过程，如果某个类的调用关系都在同一个dex文件中，那么这个类会被打上CLASS_ISPREVERIFIED标记，表示这个类已经预先验证过了。
-但是再使用的过程中会反过来校验下，如果这个类被打上了CLASS_ISPREVERIFIED但是存在调用关系的类不在同一个dex文件中的话，会直接抛出异常。
-为了解决这个问题，QQ空间给出的解决方案就是，准备一个 Hack 类，这个类会单独打包成一个 hack.dex，然后在所有的类的构造方法中增加这样的代码：
+- 隐藏的技术难点 CLASS_ISPREVERIFIED 问题<br>
+  apk在安装时会进行dex文件进行验证和优化操作。这个操作能让app运行时直接加载odex文件，能够减少对内存占用，加快启动速度，如果没有odex操作，需要从apk包中提取dex再运行。
+  在验证过程，如果某个类的调用关系都在同一个dex文件中，那么这个类会被打上CLASS_ISPREVERIFIED标记，表示这个类已经预先验证过了。
+  但是再使用的过程中会反过来校验下，如果这个类被打上了CLASS_ISPREVERIFIED但是存在调用关系的类不在同一个dex文件中的话，会直接抛出异常。
+  为了解决这个问题，QQ空间给出的解决方案就是，准备一个 Hack 类，这个类会单独打包成一个 hack.dex，然后在所有的类的构造方法中增加这样的代码：
 
-```
-if (ClassVerifier.PREVENT_VERIFY) {
-   System.out.println(Hack.class);
+```java
+class A {
+    public A() {
+        if (ClassVerifier.PREVENT_VERIFY) {
+            System.out.println(Hack.class);
+        }
+    }
 }
 ```
 
@@ -591,24 +607,27 @@ if (ClassVerifier.PREVENT_VERIFY) {
 ### Robust
 
 1. 打基础包时插桩，在每个方法前插入一段类型为 ChangeQuickRedirect 静态变量的逻辑；
-2. 加载补丁时，从补丁包中读取要替换的类及具体替换的方法实现，新建 ClassLoader 加载补丁dex。 找到补丁对应的 class，通过反射将 ChangeQuickRedirect
+2. 加载补丁时，从补丁包中读取要替换的类及具体替换的方法实现，新建 ClassLoader 加载补丁dex。找到补丁对应的 class，通过反射将 ChangeQuickRedirect
    静态变量赋值为补丁中的实现，从而代理方法的实现。
 
-```
+```java
 // 插桩后的源码 State
-public static ChangeQuickRedirect changeQuickRedirect;
-public long getIndex() {
-    if(changeQuickRedirect != null) {
-        //PatchProxy中封装了获取当前className和methodName的逻辑，并在其内部最终调用了changeQuickRedirect的对应函数
-        if(PatchProxy.isSupport(new Object[0], this, changeQuickRedirect, false)) {
-            return ((Long)PatchProxy.accessDispatch(new Object[0], this, changeQuickRedirect, false)).longValue();
+class A {
+    public static ChangeQuickRedirect changeQuickRedirect;
+
+    public long getIndex() {
+        if (changeQuickRedirect != null) {
+            // PatchProxy中封装了获取当前className和methodName的逻辑，并在其内部最终调用了changeQuickRedirect的对应函数
+            if (PatchProxy.isSupport(new Object[0], this, changeQuickRedirect, false)) {
+                return ((Long) PatchProxy.accessDispatch(new Object[0], this, changeQuickRedirect, false)).longValue();
+            }
         }
+        return 100L;
     }
-    return 100L;
 }
 ```
 
-```
+```java
 // 补丁类 StatePatch
 public class StatePatch implements ChangeQuickRedirect {
     @Override
