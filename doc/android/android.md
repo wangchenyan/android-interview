@@ -753,6 +753,12 @@ Preferences DataStore 优点
 
 ### Glide
 
+**Glide缓存原理**
+- Glide缓存分为弱引用+ LruCache+ DiskLruCache，其中读取数据的顺序是：弱引用 > LruCache > DiskLruCache>网络；写入缓存的顺序是：网络 --> DiskLruCache--> LruCache-->弱引用
+- 内存缓存分为弱引用的和 LruCache ，其中正在使用的图片使用弱引用缓存，暂时不使用的图片用 LruCache缓存，这一点是通过 图片引用计数器（acquired变量）来实现的，详情可以看内存缓存的小结。
+- 磁盘缓存就是通过DiskLruCache实现的，根据缓存策略的不同会获取到不同类型的缓存图片。它的逻辑是：先从转换后的缓存中取；没有的话再从原始的（没有转换过的）缓存中拿数据；再没有的话就从网络加载图片数据，获取到数据之后，再依次缓存到磁盘和弱引用。
+- [Android开源框架面试题：谈谈Glide框架的缓存机制设计](https://zhuanlan.zhihu.com/p/648543711)
+
 [Android glide使用过程中遇到的坑(进阶篇)](https://www.jianshu.com/p/deccde405e04)
 
 ### AndResGuard
