@@ -311,7 +311,7 @@ public class Handler {
 
 1. 屏障消息和普通消息的区别在于屏障没有target，普通消息有target是因为它需要将消息分发给对应的target，而屏障不需要被分发，它就是用来挡住普通消息来保证异步消息优先处理的
 2. 屏障和普通消息一样可以根据时间来插入到消息队列中的适当位置，并且只会挡住它后面的同步消息的分发
-3. postSyncBarrier()返回一个int类型的数值，通过这个数值可以撤销屏障即removeSyncBarrier()
+3. postSyncBarrier()返回一个int类型的数值，通过这个数值可以撤销屏障即removeSyncBarrier()，该方法仅限系统使用
 4. 插入普通消息会唤醒消息队列，但是插入屏障不会
 
 [Android Handler之同步屏障机制](https://www.jianshu.com/p/ed318296f95f)
