@@ -18,7 +18,7 @@
 - singleTop：如果某个Activity自己激活自己，即任务栈栈顶就是该Activity，则不需要创建，其余情况都要创建Activity实例；
 - singleTask：如果要激活的那个Activity在任务栈中存在该实例，则不需要创建，只需要把此Activity放入栈顶，
   即把该Activity以上的Activity实例都pop，并调用其onNewIntent；
-- singleInstance：应用A的任务栈中创建了MainActivity实例，如果应用B也要激活 MainActivity，则不需要创建，两应用共享该Activity实例。
+- singleInstance：启动 Activity 时，如果不存在实例，则创建实例并放在一个新的任务栈中，该任务栈仅包含一个 Activity，如果已存在实例，则将该实例切到前台，一个应用仅包含一个 Activity 实例。
 
 onSaveInstanceState的调用遵循一个重要原则，即当系统“未经你许可”时销毁了你的 activity，则onSaveInstanceState会被系统调用，
 这是系统的责任，因为它必须要提供一个机会让你保存你的数据。至于onRestoreInstanceState方法，需要注意的是，
